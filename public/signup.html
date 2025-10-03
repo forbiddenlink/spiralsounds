@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#06B6D4">
+  <meta name="msapplication-TileColor" content="#06B6D4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
+
+  <title>Sign Up - Spiral Sounds</title>
+</head>
+
+<body>
+  <div class="auth-container">
+    <header class="auth-header">
+      <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo" class="auth-logo"></a>
+      <h1>Join the Family</h1>
+      <p class="auth-subtitle">Create your Spiral Sounds account and start your vinyl journey</p>
+    </header>
+
+    <main class="auth-main">
+      <form class="auth-form" id="signup-form">
+        <div class="form-group">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" name="name" required autocomplete="name"
+            placeholder="Enter your full name" />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" name="email" required autocomplete="email"
+            placeholder="Enter your email address" />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" name="username" required autocomplete="username"
+            placeholder="Choose a username" minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_-]+$" />
+          <small class="form-help">3-20 characters, letters, numbers, underscores, and dashes only</small>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" name="password" required autocomplete="new-password"
+            placeholder="Create a strong password" minlength="8" />
+          <small class="form-help">At least 8 characters with uppercase, lowercase, number, and special
+            character</small>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-confirm-password">Confirm Password</label>
+          <input type="password" id="signup-confirm-password" name="confirmPassword" required
+            autocomplete="new-password" placeholder="Confirm your password" />
+        </div>
+
+        <button type="submit" class="main-btn" id="signup-btn">
+          <span class="btn-text">Create Account</span>
+          <div class="btn-spinner hidden"></div>
+        </button>
+
+        <div id="error-message" class="message hidden"></div>
+      </form>
+
+      <div class="auth-links">
+        <p>Already have an account? <a href="/login.html">Sign in</a></p>
+        <p><a href="/">← Back to Home</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/signup.js" type="module"></script>
+</body>
+
+</html>

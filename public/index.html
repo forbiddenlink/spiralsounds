@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/enhanced-theme.css">
+  <link rel="stylesheet" href="css/enhanced-components.css">
+  <link rel="stylesheet" href="css/modern-grid.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#06B6D4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Spiral Sounds">
+  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
+  <meta name="description"
+    content="Discover and collect the finest vinyl records with Spiral Sounds - your premium music store">
+  <meta name="keywords" content="vinyl, records, music, albums, collectibles, premium">
+
+  <title>Spiral Sounds - Premium Vinyl Collection</title>
+</head>
+
+<body>
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light theme">
+    🌙
+  </button>
+
+  <div class="top-banner" id="top-banner">
+    <p id="greeting" class="top-banner-greeting"></p>
+    <a href="/cart.html" id="cart-banner" class="cart-banner-link"></a>
+    <button class="menu-toggle" aria-label="Toggle menu"><img src="images/menu.svg" alt=""></button>
+    <nav class="header-menu" aria-label="Main menu">
+      <a href="/login.html" id="login">Log in</a>
+      <a href="/signup.html" id="signup">Sign up</a>
+      <a href="/admin.html" id="admin-dashboard" class="hidden">📊 Dashboard</a>
+      <button class="main-btn" id="logout-btn">Log out</button>
+      <form role="search">
+        <label for="search-input" class="visually-hidden">Search products</label>
+        <input type="text" placeholder="Search..." id="search-input" autocomplete="off">
+      </form>
+    </nav>
+  </div>
+
+  <header>
+    <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo"></a>
+    <div class="header-text">
+      <h1>Spiral Sounds</h1>
+      <p class="subhead">The best in vinyl</p>
+    </div>
+  </header>
+  <main class="main-content">
+    <section class="genre-select-container">
+      <label for="genre-select">View by genre</label>
+      <select id="genre-select">
+        <option value="">Show All</option>
+      </select>
+    </section>
+    <section class="products" id="products-container"></section>
+  </main>
+  <footer>
+    <p>© Spiral Sounds</p>
+  </footer>
+  <!-- Parallax Background -->
+  <div class="parallax-bg" data-speed="0.3"></div>
+
+  <script src="js/performance.js" type="module"></script>
+  <script src="js/pwa.js" type="module"></script>
+  <script src="js/theme.js" type="module"></script>
+  <script src="js/websocketClient.js" type="module"></script>
+  <script src="js/advancedSearch.js" type="module"></script>
+  <script src="js/enhancedProductUI.js" type="module"></script>
+  <script src="js/index.js" type="module"></script>
+  <script src="js/menu.js" type="module"></script>
+</body>
+
+</html>

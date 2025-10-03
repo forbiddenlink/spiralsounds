@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - Spiral Sounds</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/enhanced-theme.css">
+    <link rel="stylesheet" href="/css/enhanced-components.css">
+    <link rel="stylesheet" href="/css/modern-grid.css">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/images/spiral_logo.png">
+    <link rel="apple-touch-icon" href="/images/spiral_logo.png">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="/" class="logo-link">
+                    <img src="/images/spiral_logo.png" alt="Spiral Sounds" class="logo">
+                    <span class="logo-text">Spiral Sounds</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/cart.html" class="nav-link">Cart</a>
+                <a href="#" onclick="logout()" class="nav-link">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="settings-main">
+        <div class="container">
+            <div class="settings-header">
+                <h1>Account Settings</h1>
+                <p>Manage your account preferences and security settings</p>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Profile Section -->
+                <section class="settings-card glass-card">
+                    <div class="card-header">
+                        <h2>Profile Information</h2>
+                        <p>Update your personal information</p>
+                    </div>
+                    <div class="card-content">
+                        <form id="profileForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="displayName">Display Name</label>
+                                <input type="text" id="displayName" name="displayName" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" class="form-input" readonly>
+                                <small class="form-hint">Email cannot be changed. Contact support if needed.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" class="form-input" readonly>
+                                <small class="form-hint">Username cannot be changed.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">Update Profile</span>
+                                <div class="btn-loader" style="display: none;"></div>
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Security Section -->
+                <section class="settings-card glass-card">
+                    <div class="card-header">
+                        <h2>Security</h2>
+                        <p>Manage your account security and password</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h3>Password</h3>
+                                <p>Change your account password</p>
+                            </div>
+                            <button class="btn btn-outline" onclick="showChangePasswordModal()">
+                                Change Password
+                            </button>
+                        </div>
+
+                        <div class="security-divider"></div>
+
+                        <div class="security-item" id="twoFactorSection">
+                            <div class="security-info">
+                                <h3>Two-Factor Authentication</h3>
+                                <p id="2faStatus">Loading...</p>
+                            </div>
+                            <div class="security-actions">
+                                <button id="toggle2faBtn" class="btn" style="display: none;">
+                                    Enable 2FA
+                                </button>
+                                <button id="regenerateBackupBtn" class="btn btn-outline" style="display: none;">
+                                    Regenerate Backup Codes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Connected Accounts -->
+                <section class="settings-card glass-card">
+                    <div class="card-header">
+                        <h2>Connected Accounts</h2>
+                        <p>Manage your OAuth connections</p>
+                    </div>
+                    <div class="card-content">
+                        <div id="connectedAccounts" class="connected-accounts">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal-backdrop" style="display: none;">
+        <div class="modal glass-card">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="modal-close" onclick="hideChangePasswordModal()">&times;</button>
+            </div>
+            <div class="modal-content">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" required class="form-input" minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required class="form-input">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" onclick="hideChangePasswordModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2FA Setup Modal -->
+    <div id="setup2faModal" class="modal-backdrop" style="display: none;">
+        <div class="modal glass-card">
+            <div class="modal-header">
+                <h3>Setup Two-Factor Authentication</h3>
+                <button class="modal-close" onclick="hide2faSetupModal()">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div id="qrCodeSection" style="display: none;">
+                    <p>Scan this QR code with your authenticator app:</p>
+                    <div class="qr-code-container">
+                        <img id="qrCodeImage" src="" alt="2FA QR Code" class="qr-code">
+                    </div>
+                    <p>Or enter this code manually:</p>
+                    <div class="manual-key">
+                        <code id="manualKey"></code>
+                        <button onclick="copyToClipboard('manualKey')" class="btn btn-sm btn-outline">Copy</button>
+                    </div>
+                </div>
+
+                <form id="verify2faSetupForm">
+                    <div class="form-group">
+                        <label for="setupToken">Enter verification code:</label>
+                        <input type="text" id="setupToken" name="token" required class="form-input" maxlength="6" placeholder="123456">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" onclick="hide2faSetupModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Enable 2FA</button>
+                    </div>
+                </form>
+
+                <div id="backupCodes" style="display: none;">
+                    <h4>Backup Codes</h4>
+                    <p>Save these backup codes in a safe place. Each code can only be used once.</p>
+                    <div class="backup-codes" id="backupCodesList"></div>
+                    <div class="modal-actions">
+                        <button onclick="downloadBackupCodes()" class="btn btn-outline">Download Codes</button>
+                        <button onclick="hide2faSetupModal()" class="btn btn-primary">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Background Elements -->
+    <div class="particles-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/theme.js"></script>
+    <script src="/js/logout.js"></script>
+    <script>
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadUserProfile();
+            await load2FAStatus();
+            await loadConnectedAccounts();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Profile form
+            document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
+            
+            // Change password form
+            document.getElementById('changePasswordForm').addEventListener('submit', handlePasswordChange);
+            
+            // 2FA setup form
+            document.getElementById('verify2faSetupForm').addEventListener('submit', handleVerify2FASetup);
+        }
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    
+                    document.getElementById('displayName').value = currentUser.display_name || '';
+                    document.getElementById('email').value = currentUser.email || '';
+                    document.getElementById('username').value = currentUser.username || '';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showToast('Failed to load profile information', 'error');
+            }
+        }
+
+        async function load2FAStatus() {
+            try {
+                const response = await fetch('/api/auth/2fa/status', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const status = await response.json();
+                    update2FADisplay(status);
+                }
+            } catch (error) {
+                console.error('Error loading 2FA status:', error);
+                document.getElementById('2faStatus').textContent = 'Failed to load 2FA status';
+            }
+        }
+
+        function update2FADisplay(status) {
+            const statusElement = document.getElementById('2faStatus');
+            const toggleBtn = document.getElementById('toggle2faBtn');
+            const backupBtn = document.getElementById('regenerateBackupBtn');
+
+            if (status.enabled) {
+                statusElement.innerHTML = `
+                    <span class="status-enabled">✓ Enabled</span>
+                    <small>Setup on ${new Date(status.setupAt).toLocaleDateString()}</small>
+                    <br><small>${status.remainingBackupCodes} backup codes remaining</small>
+                `;
+                toggleBtn.textContent = 'Disable 2FA';
+                toggleBtn.className = 'btn btn-danger';
+                toggleBtn.onclick = disable2FA;
+                backupBtn.style.display = 'block';
+            } else {
+                statusElement.innerHTML = '<span class="status-disabled">✗ Disabled</span><br><small>Secure your account with 2FA</small>';
+                toggleBtn.textContent = 'Enable 2FA';
+                toggleBtn.className = 'btn btn-primary';
+                toggleBtn.onclick = setup2FA;
+                backupBtn.style.display = 'none';
+            }
+
+            toggleBtn.style.display = 'block';
+        }
+
+        async function setup2FA() {
+            try {
+                const response = await fetch('/api/auth/2fa/setup', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    document.getElementById('qrCodeImage').src = data.qrCode;
+                    document.getElementById('manualKey').textContent = data.manualEntryKey;
+                    document.getElementById('qrCodeSection').style.display = 'block';
+                    document.getElementById('setup2faModal').style.display = 'flex';
+                } else {
+                    throw new Error('Failed to setup 2FA');
+                }
+            } catch (error) {
+                console.error('Error setting up 2FA:', error);
+                showToast('Failed to setup 2FA', 'error');
+            }
+        }
+
+        async function handleVerify2FASetup(e) {
+            e.preventDefault();
+            
+            const token = document.getElementById('setupToken').value;
+            
+            try {
+                const response = await fetch('/api/auth/2fa/enable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('2FA enabled successfully!', 'success');
+                    await load2FAStatus();
+                    hide2faSetupModal();
+                } else {
+                    showToast(data.message || 'Failed to enable 2FA', 'error');
+                }
+            } catch (error) {
+                console.error('Error enabling 2FA:', error);
+                showToast('Failed to enable 2FA', 'error');
+            }
+        }
+
+        async function disable2FA() {
+            if (!confirm('Are you sure you want to disable 2FA? This will reduce your account security.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/2fa/disable', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('2FA disabled successfully', 'success');
+                    await load2FAStatus();
+                } else {
+                    showToast(data.message || 'Failed to disable 2FA', 'error');
+                }
+            } catch (error) {
+                console.error('Error disabling 2FA:', error);
+                showToast('Failed to disable 2FA', 'error');
+            }
+        }
+
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+        }
+
+        function hideChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        function hide2faSetupModal() {
+            document.getElementById('setup2faModal').style.display = 'none';
+            document.getElementById('verify2faSetupForm').reset();
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('toast-show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function loadConnectedAccounts() {
+            // This would load OAuth connection status
+            // For now, show placeholder
+            const container = document.getElementById('connectedAccounts');
+            container.innerHTML = `
+                <div class="connected-account">
+                    <div class="account-info">
+                        <strong>Google</strong>
+                        <p>Connect your Google account for easy sign-in</p>
+                    </div>
+                    <button class="btn btn-outline">Connect</button>
+                </div>
+                <div class="connected-account">
+                    <div class="account-info">
+                        <strong>GitHub</strong>
+                        <p>Connect your GitHub account for easy sign-in</p>
+                    </div>
+                    <button class="btn btn-outline">Connect</button>
+                </div>
+            `;
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        // Add custom CSS for account settings
+        const style = document.createElement('style');
+        style.textContent = `
+            .settings-main {
+                min-height: 100vh;
+                padding: 2rem 0;
+                background: var(--color-bg-primary);
+            }
+
+            .settings-header {
+                text-align: center;
+                margin-bottom: 3rem;
+            }
+
+            .settings-header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: var(--color-text-primary);
+                margin-bottom: 0.5rem;
+            }
+
+            .settings-grid {
+                display: grid;
+                gap: 2rem;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .settings-card {
+                padding: 2rem;
+            }
+
+            .card-header {
+                margin-bottom: 2rem;
+                border-bottom: 1px solid var(--color-border);
+                padding-bottom: 1rem;
+            }
+
+            .card-header h2 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .security-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 0;
+            }
+
+            .security-divider {
+                height: 1px;
+                background: var(--color-border);
+                margin: 1rem 0;
+            }
+
+            .security-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .status-enabled {
+                color: var(--color-success);
+                font-weight: 600;
+            }
+
+            .status-disabled {
+                color: var(--color-error);
+                font-weight: 600;
+            }
+
+            .qr-code-container {
+                text-align: center;
+                margin: 1rem 0;
+            }
+
+            .qr-code {
+                max-width: 200px;
+                border-radius: var(--border-radius-md);
+            }
+
+            .manual-key {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem;
+                background: var(--color-bg-secondary);
+                border-radius: var(--border-radius-md);
+            }
+
+            .backup-codes {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.5rem;
+                padding: 1rem;
+                background: var(--color-bg-secondary);
+                border-radius: var(--border-radius-md);
+                font-family: monospace;
+            }
+
+            .connected-account {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border: 1px solid var(--color-border);
+                border-radius: var(--border-radius-md);
+                margin-bottom: 1rem;
+            }
+
+            @media (max-width: 768px) {
+                .settings-main {
+                    padding: 1rem;
+                }
+
+                .settings-card {
+                    padding: 1.5rem;
+                }
+
+                .security-item {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+                }
+
+                .connected-account {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

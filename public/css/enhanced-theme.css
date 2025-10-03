@@ -1,0 +1,388 @@
+/* -----------------------------------
+   Enhanced Theme System with Smooth Transitions
+----------------------------------- */
+
+/* CSS Custom Properties for Dynamic Theming */
+:root {
+    /* Color scheme transitions */
+    --theme-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Dark Theme (Default) */
+    --bg-primary: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    --bg-secondary: rgba(30, 41, 59, 0.8);
+    --bg-tertiary: rgba(51, 65, 85, 0.6);
+    --bg-overlay: rgba(15, 23, 42, 0.95);
+    
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-tertiary: #94A3B8;
+    
+    --accent-primary: #06B6D4;
+    --accent-secondary: #8B5CF6;
+    --accent-success: #10B981;
+    --accent-warning: #F59E0B;
+    --accent-danger: #EF4444;
+    
+    /* Shadows */
+    --shadow-color: rgba(0, 0, 0, 0.25);
+    --shadow-light: 0 4px 6px var(--shadow-color);
+    --shadow-medium: 0 8px 25px var(--shadow-color);
+    --shadow-heavy: 0 20px 40px var(--shadow-color);
+    
+    /* Border colors */
+    --border-light: rgba(255, 255, 255, 0.1);
+    --border-medium: rgba(255, 255, 255, 0.2);
+    --border-heavy: rgba(255, 255, 255, 0.3);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --bg-primary: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+    --bg-secondary: rgba(248, 250, 252, 0.8);
+    --bg-tertiary: rgba(226, 232, 240, 0.6);
+    --bg-overlay: rgba(255, 255, 255, 0.95);
+    
+    --text-primary: #1E293B;
+    --text-secondary: #475569;
+    --text-tertiary: #64748B;
+    
+    --accent-primary: #0891B2;
+    --accent-secondary: #7C3AED;
+    --accent-success: #059669;
+    --accent-warning: #D97706;
+    --accent-danger: #DC2626;
+    
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-light: 0 4px 6px var(--shadow-color);
+    --shadow-medium: 0 8px 25px var(--shadow-color);
+    --shadow-heavy: 0 20px 40px var(--shadow-color);
+    
+    --border-light: rgba(0, 0, 0, 0.1);
+    --border-medium: rgba(0, 0, 0, 0.15);
+    --border-heavy: rgba(0, 0, 0, 0.2);
+}
+
+/* Apply transitions to all theme-aware elements */
+*,
+*::before,
+*::after {
+    transition-property: background-color, border-color, color, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base elements with theme support */
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: var(--theme-transition);
+}
+
+/* Enhanced Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-medium);
+    color: var(--text-primary);
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-medium);
+    overflow: hidden;
+}
+
+.theme-toggle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: conic-gradient(
+        from 0deg,
+        var(--accent-primary),
+        var(--accent-secondary),
+        var(--accent-primary)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+}
+
+.theme-toggle:hover::before {
+    opacity: 0.1;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: var(--shadow-heavy);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Theme toggle icon animation */
+.theme-icon {
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.theme-toggle.switching .theme-icon {
+    transform: rotate(360deg) scale(0.8);
+}
+
+/* Theme-aware component styles */
+.card,
+.product-card,
+.auth-container,
+.modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-medium);
+    transition: var(--theme-transition);
+}
+
+.input,
+.form-input,
+.search-input {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-light);
+    color: var(--text-primary);
+    transition: var(--theme-transition);
+}
+
+.input:focus,
+.form-input:focus,
+.search-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(var(--accent-primary), 0.1);
+}
+
+/* Theme-aware buttons */
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-medium);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--accent-primary);
+    border: 2px solid var(--accent-primary);
+}
+
+/* -----------------------------------
+   Advanced Glassmorphism Effects
+----------------------------------- */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-xl);
+    transition: var(--theme-transition);
+}
+
+[data-theme="light"] .glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.glass-intense {
+    background: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="light"] .glass-intense {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* -----------------------------------
+   Particle Background Animation
+----------------------------------- */
+.particle-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: float 15s linear infinite;
+}
+
+.particle:nth-child(2n) {
+    background: var(--accent-secondary);
+    animation-duration: 20s;
+    animation-delay: -5s;
+}
+
+.particle:nth-child(3n) {
+    background: var(--accent-warning);
+    animation-duration: 25s;
+    animation-delay: -10s;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.5;
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* -----------------------------------
+   Responsive Theme Adjustments
+----------------------------------- */
+@media (max-width: 768px) {
+    .theme-toggle {
+        width: 50px;
+        height: 50px;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .particle {
+        width: 1px;
+        height: 1px;
+    }
+}
+
+/* -----------------------------------
+   Accessibility Enhancements
+----------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .particle {
+        animation: none;
+        opacity: 0.1;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-light: rgba(255, 255, 255, 0.8);
+        --border-medium: rgba(255, 255, 255, 0.9);
+        --border-heavy: rgba(255, 255, 255, 1);
+    }
+    
+    [data-theme="light"] {
+        --border-light: rgba(0, 0, 0, 0.8);
+        --border-medium: rgba(0, 0, 0, 0.9);
+        --border-heavy: rgba(0, 0, 0, 1);
+    }
+    
+    .glass,
+    .glass-intense {
+        background: var(--bg-secondary);
+        backdrop-filter: none;
+    }
+}
+
+/* Dark mode preference */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        color-scheme: light;
+    }
+}
+
+/* Focus indicators for better accessibility */
+:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* -----------------------------------
+   Theme Transition Effects
+----------------------------------- */
+.theme-transition {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth theme switching animation */
+body.theme-switching {
+    overflow: hidden;
+}
+
+body.theme-switching::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: var(--bg-primary);
+    border-radius: 50%;
+    z-index: 9999;
+    animation: themeSwitch 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes themeSwitch {
+    0% {
+        width: 0;
+        height: 0;
+        transform: translate(-50%, -50%);
+    }
+    50% {
+        width: 200vmax;
+        height: 200vmax;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        width: 200vmax;
+        height: 200vmax;
+        transform: translate(-50%, -50%);
+    }
+}

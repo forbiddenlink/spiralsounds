@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plaster&family=Poppins:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <title>Email Verification - Spiral Sounds</title>
+</head>
+
+<body>
+  <div class="auth-container">
+    <header class="auth-header">
+      <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo" class="auth-logo"></a>
+      <h1>Email Verification</h1>
+      <p class="auth-subtitle">Verifying your email address...</p>
+    </header>
+
+    <main class="auth-main">
+      <div id="verification-status" class="verification-content">
+        <div class="spinner-large"></div>
+        <p>Please wait while we verify your email...</p>
+      </div>
+
+      <div class="auth-links">
+        <p><a href="/login.html">Go to Login</a></p>
+        <p><a href="/">Return to Home</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/verifyEmail.js" type="module"></script>
+</body>
+
+</html>

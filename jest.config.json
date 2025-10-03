@@ -1,0 +1,19 @@
+{
+  "testEnvironment": "node",
+  "setupFilesAfterEnv": ["./tests/setup.js"],
+  "collectCoverageFrom": [
+    "**/*.js",
+    "!node_modules/**",
+    "!coverage/**",
+    "!tests/**",
+    "!public/**",
+    "!*.config.js",
+    "!server.js"
+  ],
+  "testMatch": [
+    "**/tests/**/*.test.js",
+    "!**/tests/setup.js"
+  ],
+  "transform": {},
+  "testTimeout": 30000
+}

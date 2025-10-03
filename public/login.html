@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#06B6D4">
+  <meta name="msapplication-TileColor" content="#06B6D4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
+
+  <title>Sign In - Spiral Sounds</title>
+</head>
+
+<body>
+  <div class="auth-container">
+    <header class="auth-header">
+      <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo" class="auth-logo"></a>
+      <h1>Welcome Back</h1>
+      <p class="auth-subtitle">Sign in to your Spiral Sounds account</p>
+    </header>
+
+    <main class="auth-main">
+      <form class="auth-form" id="signin-form">
+        <div class="form-group">
+          <label for="signin-username">Username or Email</label>
+          <input type="text" id="signin-username" name="username" required autocomplete="username"
+            placeholder="Enter your username or email" />
+        </div>
+
+        <div class="form-group">
+          <label for="signin-password">Password</label>
+          <input type="password" id="signin-password" name="password" required autocomplete="current-password"
+            placeholder="Enter your password" />
+        </div>
+
+        <button type="submit" class="main-btn" id="login-btn">
+          <span class="btn-text">Sign In</span>
+          <div class="btn-spinner hidden"></div>
+        </button>
+
+        <div id="error-message" class="message hidden"></div>
+      </form>
+
+
+
+      <div class="auth-links">
+        <p><a href="/forgot-password.html">Forgot your password?</a></p>
+        <p>Don't have an account? <a href="/signup.html">Sign up</a></p>
+        <p><a href="/">← Back to Home</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/login.js" type="module"></script>
+</body>
+
+</html>
