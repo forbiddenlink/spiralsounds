@@ -175,10 +175,11 @@ npm run test:watch     # Run tests in watch mode
 
 #### Register User
 ```http
-POST /api/auth/register
+POST /api/v1/auth/register
 Content-Type: application/json
 
 {
+  "name": "John Doe",
   "username": "user123",
   "email": "user@example.com", 
   "password": "SecurePass123!"
@@ -187,7 +188,7 @@ Content-Type: application/json
 
 #### Login User
 ```http  
-POST /api/auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -198,7 +199,7 @@ Content-Type: application/json
 
 #### Password Reset
 ```http
-POST /api/auth/forgot-password
+POST /api/v1/auth/forgot-password
 Content-Type: application/json
 
 {
@@ -210,31 +211,36 @@ Content-Type: application/json
 
 #### Get Products
 ```http
-GET /api/products?search=rock&genre=rock&limit=20&offset=0
+GET /api/v1/products?search=rock&genre=rock&limit=20&offset=0
 ```
 
-#### Get Product Details
+#### Get Product Genres
 ```http
-GET /api/products/:id
+GET /api/v1/products/genres
 ```
 
 ### Cart Endpoints
 
 #### Add to Cart
 ```http
-POST /api/cart
+POST /api/v1/cart/items
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 {
-  "product_id": 1,
-  "quantity": 2
+  "product_id": 1
 }
 ```
 
 #### Get Cart Items  
 ```http
-GET /api/cart
+GET /api/v1/cart
+Authorization: Bearer <jwt_token>
+```
+
+#### Remove Cart Item
+```http
+DELETE /api/v1/cart/items/:itemId
 Authorization: Bearer <jwt_token>
 ```
 

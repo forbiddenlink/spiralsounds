@@ -3,14 +3,7 @@
  * Adds fields for two-factor authentication and security auditing
  */
 
-const fs = require('fs');
-const path = require('path');
-
-const migration = {
-  id: 'add_2fa_support',
-  description: 'Add 2FA support and security audit fields to users table',
-  
-  up: (db) => {
+export const up = async (db) => {
     console.log('🔐 Adding 2FA and security support to users table...');
     
     // Add 2FA columns
@@ -81,9 +74,9 @@ const migration = {
     `);
     
     console.log('✅ 2FA and security audit support added successfully');
-  },
-  
-  down: (db) => {
+}
+
+export const down = async (db) => {
     console.log('🔄 Removing 2FA support...');
     
     // Drop tables
@@ -93,7 +86,4 @@ const migration = {
     // For development, we'll just note this limitation
     console.log('⚠️ Note: SQLite does not support dropping columns. In production, you would need to recreate the users table.');
     console.log('✅ 2FA tables removed successfully');
-  }
-};
-
-module.exports = migration;
+}
