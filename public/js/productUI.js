@@ -27,23 +27,25 @@ export function renderProducts(products, showLoadingState = false) {
             </div>
           </div>
           <div class="product-info">
-            <h2>${album.title}</h2>
-            <h3>${album.artist}</h3>
+            <h3 class="product-title">${album.title}</h3>
+            <p class="product-artist">${album.artist}</p>
             <div class="price-rating">
-              <p class="price">$${album.price}</p>
+              <span class="price">$${album.price}</span>
               <div class="rating">
                 ${'⭐'.repeat(Math.floor(Math.random() * 2) + 4)}
               </div>
             </div>
-            <button class="main-btn add-btn" data-id="${album.id}">
+            <button class="btn btn-primary add-btn" data-id="${album.id}">
               <span class="btn-text">Add to Cart</span>
               <span class="btn-icon">🛒</span>
             </button>
           </div>
-          <p class="genre-label">${album.genre}</p>
-          <button class="wishlist-btn" data-id="${album.id}" title="Add to Wishlist">
-            <span class="heart">🤍</span>
-          </button>
+          <div class="product-meta">
+            <span class="genre-label">${album.genre}</span>
+            <button class="wishlist-btn" data-id="${album.id}" title="Add to Wishlist">
+              <span class="heart">🤍</span>
+            </button>
+          </div>
         </div>
       `
     }).join('')

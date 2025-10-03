@@ -82,6 +82,15 @@ async function fetchCartItems({ userMessage, checkoutBtn }) {
 function renderCartItems(items, cartList) {
   cartList.innerHTML = ''
 
+  if (items.length === 0) {
+    const emptyCart = document.getElementById('empty-cart')
+    if (emptyCart) emptyCart.classList.remove('hidden')
+    return
+  }
+
+  const emptyCart = document.getElementById('empty-cart')
+  if (emptyCart) emptyCart.classList.add('hidden')
+
   items.forEach(item => {
     const li = document.createElement('li')
     li.className = 'cart-item'
@@ -89,11 +98,22 @@ function renderCartItems(items, cartList) {
     const itemTotal = item.price * item.quantity
 
     li.innerHTML = `
-      <div>
-        <strong>${item.title}: </strong>
-        <button data-id="${item.cartItemId}" class="remove-btn">🗑️</button>
+      <div class="cart-item-image">
+        <img src="./images/${item.title.toLowerCase().replace(/\s+/g, '')}.png" alt="${item.title}">
       </div>
-      <span>× ${item.quantity} = $${itemTotal.toFixed(2)}</span>
+      <div class="cart-item-details">
+        <h4 class="cart-item-title">${item.title}</h4>
+        <p class="cart-item-artist">${item.artist}</p>
+        <div class="cart-item-meta">
+          <span class="cart-item-quantity">Qty: ${item.quantity}</span>
+          <span class="cart-item-price">$${item.price}</span>
+        </div>
+      </div>
+      <div class="cart-item-actions">
+        <button class="btn btn-outline remove-btn" data-id="${item.cartItemId}">
+          <span>🗑️</span> Remove
+        </button>
+      </div>
     `
 
     cartList.appendChild(li)
@@ -102,11 +122,20 @@ function renderCartItems(items, cartList) {
 
 function updateCartTotal(items, cartTotal, checkoutBtn) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  cartTotal.innerHTML = `Total: $${total.toFixed(2)}`
+  cartTotal.innerHTML = `$${total.toFixed(2)}`
+  
+  const cartSubtotal = document.getElementById('cart-subtotal')
+  if (cartSubtotal) cartSubtotal.innerHTML = `$${total.toFixed(2)}`
+  
+  const cartItemCount = document.getElementById('cart-item-count')
+  if (cartItemCount) cartItemCount.innerHTML = `${items.length} item${items.length !== 1 ? 's' : ''}`
 
   if (total <= 0) {
     checkoutBtn.disabled = true
     checkoutBtn.classList.add('disabled')
+  } else {
+    checkoutBtn.disabled = false
+    checkoutBtn.classList.remove('disabled')
   }
 }
 
