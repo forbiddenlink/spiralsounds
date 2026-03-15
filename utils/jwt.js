@@ -57,7 +57,8 @@ export const hashToken = (token) => {
 // JWT middleware for routes that require authentication
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
+  const headerToken = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
+  const token = headerToken || req.cookies?.accessToken
 
   if (!token) {
     return next(new AuthError('Access token required', 'TOKEN_REQUIRED'))
@@ -65,7 +66,11 @@ export const authenticateToken = (req, res, next) => {
 
   try {
     const decoded = verifyToken(token)
-    req.user = decoded
+    req.user = {
+      ...decoded,
+      id: decoded.id || decoded.userId,
+      userId: decoded.userId || decoded.id
+    }
     next()
   } catch (error) {
     // Pass JWT errors to our error handler
@@ -76,12 +81,17 @@ export const authenticateToken = (req, res, next) => {
 // Optional JWT middleware (doesn't fail if no token)
 export const optionalAuth = (req, res, next) => {
   const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
+  const headerToken = authHeader && authHeader.split(' ')[1]
+  const token = headerToken || req.cookies?.accessToken
 
   if (token) {
     try {
       const decoded = verifyToken(token)
-      req.user = decoded
+      req.user = {
+        ...decoded,
+        id: decoded.id || decoded.userId,
+        userId: decoded.userId || decoded.id
+      }
     } catch (error) {
       // Token exists but is invalid - could log this
       req.user = null

@@ -3,16 +3,19 @@ import { getDBConnection } from '../db/db.js'
 export async function getCurrentUser(req, res) {
   try {
     const db = await getDBConnection()
+    const userId = req.user?.userId || req.session?.userId
 
-    if (!req.session.userId) {
-
-      return res.json({ isLoggedIn: false })
-      
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' })
     }
 
-    const user = await db.get('SELECT name FROM users WHERE id = ?', [req.session.userId])
+    const user = await db.get('SELECT name FROM users WHERE id = ?', [userId])
 
-    res.json({ isLoggedIn: true, name: user.name})
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json({ isLoggedIn: true, name: user.name })
 
   } catch (err) {
     console.error('getCurrentUser error:', err)

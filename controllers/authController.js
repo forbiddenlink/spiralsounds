@@ -1,6 +1,6 @@
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
-import { generateAccessToken, generateRefreshToken, hashToken } from '../utils/jwt.js'
+import { generateAccessToken, generateRefreshToken, generateSecureToken, hashToken } from '../utils/jwt.js'
 import { logger } from '../middleware/errorHandler.js'
 import { emailService } from '../utils/emailService.js'
 import { userRepository } from '../repositories/index.js'
@@ -25,6 +25,8 @@ async function logSecurityEvent(userId, eventType, details, req) {
     logger.error('Failed to log security event:', error)
   }
 }
+
+const getAuthUserId = (req) => req.user?.userId || req.user?.id
 
 export async function registerUser(req, res, next) {
   try {
@@ -393,17 +395,19 @@ import TwoFactorAuthService from '../services/TwoFactorAuthService.js'
  */
 export async function setup2FA(req, res) {
   try {
-    if (!req.user) {
+    const userId = getAuthUserId(req)
+
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' })
     }
 
     const result = await TwoFactorAuthService.generateSecret(
-      req.user.id,
-      req.user.email,
-      req.user.display_name || req.user.name
+      userId,
+      req.user?.email,
+      req.user?.display_name || req.user?.name || req.user?.username
     )
 
-    await logSecurityEvent(req.user.id, '2FA_SETUP_INITIATED', 'User initiated 2FA setup', req)
+    await logSecurityEvent(userId, '2FA_SETUP_INITIATED', 'User initiated 2FA setup', req)
 
     res.json({
       message: '2FA setup initiated',
@@ -424,8 +428,9 @@ export async function setup2FA(req, res) {
 export async function enable2FA(req, res) {
   try {
     const { token } = req.body
+    const userId = getAuthUserId(req)
 
-    if (!req.user) {
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' })
     }
 
@@ -433,12 +438,12 @@ export async function enable2FA(req, res) {
       return res.status(400).json({ error: 'Authentication code required' })
     }
 
-    const result = await TwoFactorAuthService.enableTwoFA(req.user.id, token)
+    const result = await TwoFactorAuthService.enableTwoFA(userId, token)
 
     if (result.success) {
-      await logSecurityEvent(req.user.id, '2FA_ENABLED', 'Two-factor authentication enabled', req)
+      await logSecurityEvent(userId, '2FA_ENABLED', 'Two-factor authentication enabled', req)
     } else {
-      await logSecurityEvent(req.user.id, '2FA_ENABLE_FAILED', `Failed to enable 2FA: ${result.message}`, req)
+      await logSecurityEvent(userId, '2FA_ENABLE_FAILED', `Failed to enable 2FA: ${result.message}`, req)
     }
 
     res.json(result)
@@ -475,21 +480,29 @@ export async function verify2FA(req, res) {
       }
 
       // Generate tokens
-      const accessToken = generateAccessToken(user)
-      const refreshToken = generateRefreshToken(user.id)
+      const accessToken = generateAccessToken({
+        userId: user.id,
+        username: user.username,
+        email: user.email
+      })
+      const refreshToken = generateRefreshToken({ userId: user.id })
 
       // Store refresh token
       const hashedRefreshToken = hashToken(refreshToken)
       await db.run(
         'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-        [user.id, hashedRefreshToken, Date.now() + 30 * 24 * 60 * 60 * 1000] // 30 days
+        [
+          user.id,
+          hashedRefreshToken,
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        ]
       )
 
       // Update last login
       const ipAddress = req.ip || req.connection.remoteAddress
       await db.run(
         'UPDATE users SET last_login_at = ?, last_login_ip = ? WHERE id = ?',
-        [Date.now(), ipAddress, user.id]
+        [new Date().toISOString(), ipAddress, user.id]
       )
 
       await logSecurityEvent(user.id, '2FA_LOGIN_SUCCESS', '2FA verification successful', req)
@@ -523,15 +536,16 @@ export async function verify2FA(req, res) {
 export async function disable2FA(req, res) {
   try {
     const { password } = req.body
+    const userId = getAuthUserId(req)
 
-    if (!req.user) {
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' })
     }
 
-    const result = await TwoFactorAuthService.disableTwoFA(req.user.id, password)
+    const result = await TwoFactorAuthService.disableTwoFA(userId, password)
 
     if (result.success) {
-      await logSecurityEvent(req.user.id, '2FA_DISABLED', 'Two-factor authentication disabled', req)
+      await logSecurityEvent(userId, '2FA_DISABLED', 'Two-factor authentication disabled', req)
     }
 
     res.json(result)
@@ -547,14 +561,16 @@ export async function disable2FA(req, res) {
  */
 export async function generateBackupCodes(req, res) {
   try {
-    if (!req.user) {
+    const userId = getAuthUserId(req)
+
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' })
     }
 
-    const result = await TwoFactorAuthService.generateNewBackupCodes(req.user.id)
+    const result = await TwoFactorAuthService.generateNewBackupCodes(userId)
 
     if (result.success) {
-      await logSecurityEvent(req.user.id, '2FA_BACKUP_CODES_GENERATED', 'New backup codes generated', req)
+      await logSecurityEvent(userId, '2FA_BACKUP_CODES_GENERATED', 'New backup codes generated', req)
     }
 
     res.json(result)
@@ -570,11 +586,13 @@ export async function generateBackupCodes(req, res) {
  */
 export async function get2FAStatus(req, res) {
   try {
-    if (!req.user) {
+    const userId = getAuthUserId(req)
+
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required' })
     }
 
-    const status = await TwoFactorAuthService.getTwoFAStatus(req.user.id)
+    const status = await TwoFactorAuthService.getTwoFAStatus(userId)
 
     res.json(status)
 

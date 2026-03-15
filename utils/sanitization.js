@@ -26,8 +26,8 @@ export const sanitizeInput = (input) => {
 // Sanitize an object's string properties
 export const sanitizeObject = (obj) => {
   const sanitized = {}
-  
-  for (const [key, value] in Object.entries(obj)) {
+
+  for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
       sanitized[key] = sanitizeInput(value)
     } else if (typeof value === 'object' && value !== null) {
@@ -36,7 +36,7 @@ export const sanitizeObject = (obj) => {
       sanitized[key] = value
     }
   }
-  
+
   return sanitized
 }
 

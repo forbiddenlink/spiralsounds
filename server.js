@@ -85,9 +85,6 @@ app.use(cookieParser())
 // XSS Protection - sanitize all incoming request bodies
 app.use(sanitizeRequestBody)
 
-// XSS Protection - sanitize request bodies
-app.use(sanitizeRequestBody)
-
 // Logging
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'))

@@ -7,6 +7,7 @@
 import speakeasy from 'speakeasy'
 import QRCode from 'qrcode'
 import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 import { getDBConnection } from '../db/db.js'
 import { logger } from '../middleware/errorHandler.js'
 
@@ -15,7 +16,7 @@ class TwoFactorAuthService {
    * Generate a new 2FA secret for a user
    */
   static async generateSecret(userId, userEmail, displayName) {
-    let db;
+    let db
     try {
       // Generate secret
       const secret = speakeasy.generateSecret({
@@ -28,7 +29,7 @@ class TwoFactorAuthService {
       const backupCodes = this.generateBackupCodes()
 
       // Store in database (but don't enable 2FA yet)
-      const db = await getDBConnection()
+      db = await getDBConnection()
       await db.run(
         'UPDATE users SET two_fa_secret = ?, two_fa_backup_codes = ? WHERE id = ?',
         [secret.base32, JSON.stringify(backupCodes), userId]
@@ -50,7 +51,9 @@ class TwoFactorAuthService {
       logger.error('Error generating 2FA secret:', error)
       throw new Error('Failed to generate 2FA secret')
     } finally {
-      if (db) await db.close()
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -58,8 +61,9 @@ class TwoFactorAuthService {
    * Verify TOTP token and enable 2FA
    */
   static async enableTwoFA(userId, token) {
+    let db
     try {
-      const db = await getDBConnection()
+      db = await getDBConnection()
       const user = await db.get(
         'SELECT two_fa_secret FROM users WHERE id = ?',
         [userId]
@@ -101,6 +105,10 @@ class TwoFactorAuthService {
         success: false,
         message: 'Failed to enable two-factor authentication'
       }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -108,7 +116,9 @@ class TwoFactorAuthService {
    * Verify TOTP token during login
    */
   static async verifyToken(userId, token) {
+    let db
     try {
+      db = await getDBConnection()
       const user = await db.get(
         'SELECT two_fa_secret, two_fa_enabled, two_fa_backup_codes FROM users WHERE id = ?',
         [userId]
@@ -120,7 +130,7 @@ class TwoFactorAuthService {
 
       // Check if it's a backup code
       if (token.length === 8 && /^[0-9]{8}$/.test(token)) {
-        return this.verifyBackupCode(userId, token, user.two_fa_backup_codes)
+        return await this.verifyBackupCode(userId, token, user.two_fa_backup_codes)
       }
 
       // Verify TOTP token
@@ -142,6 +152,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error verifying 2FA token:', error)
       return { success: false, message: 'Failed to verify authentication code' }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -149,6 +163,7 @@ class TwoFactorAuthService {
    * Verify backup code
    */
   static async verifyBackupCode(userId, code, backupCodesJson) {
+    let db
     try {
       const backupCodes = JSON.parse(backupCodesJson || '[]')
       const codeIndex = backupCodes.findIndex(bc => bc.code === code && !bc.used)
@@ -162,6 +177,7 @@ class TwoFactorAuthService {
       backupCodes[codeIndex].used = true
       backupCodes[codeIndex].usedAt = Date.now()
 
+      db = await getDBConnection()
       await db.run(
         'UPDATE users SET two_fa_backup_codes = ? WHERE id = ?',
         [JSON.stringify(backupCodes), userId]
@@ -178,6 +194,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error verifying backup code:', error)
       return { success: false, message: 'Failed to verify backup code' }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -185,7 +205,9 @@ class TwoFactorAuthService {
    * Disable 2FA for a user
    */
   static async disableTwoFA(userId, password = null) {
+    let db
     try {
+      db = await getDBConnection()
       // If password is provided, verify it first
       if (password) {
         const user = await db.get('SELECT password FROM users WHERE id = ?', [userId])
@@ -209,6 +231,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error disabling 2FA:', error)
       return { success: false, message: 'Failed to disable two-factor authentication' }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -216,9 +242,11 @@ class TwoFactorAuthService {
    * Generate new backup codes
    */
   static async generateNewBackupCodes(userId) {
+    let db
     try {
       const backupCodes = this.generateBackupCodes()
 
+      db = await getDBConnection()
       await db.run(
         'UPDATE users SET two_fa_backup_codes = ? WHERE id = ?',
         [JSON.stringify(backupCodes), userId]
@@ -234,6 +262,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error generating backup codes:', error)
       return { success: false, message: 'Failed to generate backup codes' }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -241,7 +273,9 @@ class TwoFactorAuthService {
    * Get 2FA status for a user
    */
   static async getTwoFAStatus(userId) {
+    let db
     try {
+      db = await getDBConnection()
       const user = await db.get(
         'SELECT two_fa_enabled, two_fa_setup_at, two_fa_backup_codes FROM users WHERE id = ?',
         [userId]
@@ -266,6 +300,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error getting 2FA status:', error)
       return { enabled: false }
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 
@@ -288,7 +326,9 @@ class TwoFactorAuthService {
    * Check if user needs 2FA verification
    */
   static async requiresTwoFA(userId) {
+    let db
     try {
+      db = await getDBConnection()
       const user = await db.get(
         'SELECT two_fa_enabled FROM users WHERE id = ?',
         [userId]
@@ -298,6 +338,10 @@ class TwoFactorAuthService {
     } catch (error) {
       logger.error('Error checking 2FA requirement:', error)
       return false
+    } finally {
+      if (db) {
+        await db.close()
+      }
     }
   }
 }

@@ -6,7 +6,7 @@
  */
 
 import { userRepository } from '../repositories/index.js'
-import { AuthorizationError, NotFoundError } from '../utils/errors.js'
+import { AuthorizationError, NotFoundError, ValidationError } from '../utils/errors.js'
 import { logger } from '../middleware/errorHandler.js'
 
 // Define system roles and their hierarchy
