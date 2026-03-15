@@ -70,6 +70,6 @@ supabase/.temp/
 
 # Build output
 .next/
-dist/
-build/
 out/
+
+# Next.js
