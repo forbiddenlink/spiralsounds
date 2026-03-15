@@ -16,7 +16,7 @@
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "author": "Elizabeth Emerson",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
@@ -47,5 +47,6 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.1.4"
-  }
+  },
+  "private": true
 }
