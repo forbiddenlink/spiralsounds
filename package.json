@@ -21,7 +21,7 @@
   "author": "Elizabeth Emerson",
   "license": "MIT",
   "dependencies": {
-    "@stripe/stripe-js": "^9.7.0",
+    "@stripe/stripe-js": "^9.8.0",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
     "compression": "^1.8.1",
@@ -35,7 +35,7 @@
     "express-session": "^1.18.2",
     "express-validator": "^7.3.2",
     "helmet": "^8.2.0",
-    "joi": "^18.2.1",
+    "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.11.0",
     "nodemailer": "^8.0.11",
@@ -44,14 +44,14 @@
     "speakeasy": "^2.0.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1",
-    "stripe": "^22.2.0",
+    "stripe": "^22.2.2",
     "validator": "^13.15.35",
     "winston": "^3.18.3",
     "ws": "^8.21.0",
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
+    "@biomejs/biome": "^2.5.0",
     "jest": "^30.4.2",
     "supertest": "^7.1.4"
   },
