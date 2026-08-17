@@ -21,7 +21,7 @@
   "author": "Elizabeth Emerson",
   "license": "MIT",
   "dependencies": {
-    "@stripe/stripe-js": "^9.12.1",
+    "@stripe/stripe-js": "^9.13.0",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
     "compression": "^1.8.1",
@@ -51,7 +51,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.7",
+    "@biomejs/biome": "^2.5.8",
     "jest": "^30.4.2",
     "supertest": "^7.1.4"
   },
