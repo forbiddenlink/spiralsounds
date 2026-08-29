@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.0...v1.0.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **deps:** move resolution overrides to package.json and add missing patches ([#48](https://github.com/forbiddenlink/spiralsounds/issues/48)) ([e40f820](https://github.com/forbiddenlink/spiralsounds/commit/e40f8207b2359ab6cc2bcfcef0000881a105b51b))
+
 ## 1.0.0 (2026-08-16)
 
 
