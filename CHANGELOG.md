@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.1...v1.0.2) (2026-09-02)
+
+
+### Bug Fixes
+
+* **ci:** let pnpm/action-setup read the version from packageManager ([80cd0a9](https://github.com/forbiddenlink/spiralsounds/commit/80cd0a995db5314555f9ac5dbfcb108afa27ab40))
+
 ## [1.0.1](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.0...v1.0.1) (2026-08-29)
 
 
