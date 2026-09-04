@@ -32,7 +32,7 @@ importers:
     dependencies:
       '@stripe/stripe-js':
         specifier: ^9.14.0
-        version: 9.14.0
+        version: 9.15.0
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -541,8 +541,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@stripe/stripe-js@9.14.0':
-    resolution: {integrity: sha512-eCeVT2ee5YWyzz+m/cGwuatcPobe0MxzUGJtat8vUuZo4vNg1bzhoImKaTG2uB1ytIO03MrYAP4d6PTiGl+IZQ==}
+  '@stripe/stripe-js@9.15.0':
+    resolution: {integrity: sha512-0ySfsYH9XzfEspNS6MXMU2cjGsxNXWDQT9JxS43nOAatj6jDEP0fLBm2BanfblzU/GL/kDjFFcKmGInHmrASeg==}
     engines: {node: '>=12.16'}
 
   '@tybys/wasm-util@0.10.2':
@@ -2861,7 +2861,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@stripe/stripe-js@9.14.0': {}
+  '@stripe/stripe-js@9.15.0': {}
 
   '@tybys/wasm-util@0.10.2':
     dependencies:
