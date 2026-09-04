@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.2...v1.0.3) (2026-09-04)
+
+
+### Bug Fixes
+
+* **deps:** override qs past its advisory floor ([#55](https://github.com/forbiddenlink/spiralsounds/issues/55)) ([a884a75](https://github.com/forbiddenlink/spiralsounds/commit/a884a75b08f8a0e4def3d0491a0c956941f7f48e))
+
 ## [1.0.2](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.1...v1.0.2) (2026-09-02)
 
 
