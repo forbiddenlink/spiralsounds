@@ -120,10 +120,10 @@ importers:
         specifier: 2.5.12
         version: 2.5.12
       jest:
-        specifier: ^30.5.1
+        specifier: 30.5.1
         version: 30.5.1(@types/node@25.9.2)
       supertest:
-        specifier: ^7.1.4
+        specifier: 7.2.2
         version: 7.2.2
 
 packages:
