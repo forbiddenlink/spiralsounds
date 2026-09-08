@@ -52,8 +52,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
-    "jest": "^30.5.1",
-    "supertest": "^7.1.4"
+    "jest": "30.5.1",
+    "supertest": "7.2.2"
   },
   "private": true,
   "pnpm": {
