@@ -1,6 +1,6 @@
 {
   "name": "spiralsounds",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Online classic vinyl store",
   "main": "server.js",
   "type": "module",
