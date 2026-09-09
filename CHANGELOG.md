@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.2...v1.0.3) (2026-09-09)
+
+
+### Bug Fixes
+
+* **deps:** override qs past its advisory floor ([#55](https://github.com/forbiddenlink/spiralsounds/issues/55)) ([a884a75](https://github.com/forbiddenlink/spiralsounds/commit/a884a75b08f8a0e4def3d0491a0c956941f7f48e))
+* **security:** pin browserslist off the open HIGH advisories ([#66](https://github.com/forbiddenlink/spiralsounds/issues/66)) ([6b54cde](https://github.com/forbiddenlink/spiralsounds/commit/6b54cdef2de0ab59ed4709ba251c1cc6b76612d5))
+
 ## [1.0.2](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.1...v1.0.2) (2026-09-02)
 
 
