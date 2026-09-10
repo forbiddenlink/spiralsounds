@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.3...v1.0.4) (2026-09-10)
+
+
+### Bug Fixes
+
+* **security:** raise the js-yaml override floor past its own advisory ([#72](https://github.com/forbiddenlink/spiralsounds/issues/72)) ([bd71bc4](https://github.com/forbiddenlink/spiralsounds/commit/bd71bc4bef5b8e1ebd1068989da28b8be99d5566))
+
 ## [1.0.3](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.2...v1.0.3) (2026-09-09)
 
 
