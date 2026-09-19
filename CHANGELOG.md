@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.4...v1.0.5) (2026-09-19)
+
+
+### Bug Fixes
+
+* **config:** match .env.example email vars to what emailService reads ([#77](https://github.com/forbiddenlink/spiralsounds/issues/77)) ([21fd16a](https://github.com/forbiddenlink/spiralsounds/commit/21fd16a4e0e2c0d042e67b3af0828c9d39154c49))
+
 ## [1.0.4](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.3...v1.0.4) (2026-09-10)
 
 
