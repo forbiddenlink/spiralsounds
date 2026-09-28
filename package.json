@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
-    "jest": "30.5.1",
+    "jest": "30.5.2",
     "supertest": "7.2.2"
   },
   "private": true,
