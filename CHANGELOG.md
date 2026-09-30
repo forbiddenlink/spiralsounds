@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.5...v1.0.6) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** update dependency nodemailer to v10 [security] ([#84](https://github.com/forbiddenlink/spiralsounds/issues/84)) ([822d8b0](https://github.com/forbiddenlink/spiralsounds/commit/822d8b0a52883496f94083a29f9e9da212a9dc1c))
+
 ## [1.0.5](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.4...v1.0.5) (2026-09-19)
 
 
