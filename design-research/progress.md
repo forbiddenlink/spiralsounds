@@ -8,9 +8,8 @@ Screenshot tooling (outside repo): `/Volumes/LizsDisk/_wt/ss-tools/shot.mjs` (lo
 
 - [x] Phase 1: Understand the site (`profile.md`, before screenshots)
 - [x] Phase 2: Research (`references.md`: 12 sites loaded, 7 blocked; `features.md`: 8 competitors loaded + Vinyl Me Please partial, Juno blocked)
-- [→] Phase 3: Decide (`plan.md`)
-
-- [ ] Phase 4: Foundation + homepage
+- [x] Phase 3: Decide (`plan.md`)
+- [→] Phase 4: Foundation + homepage
 - [ ] Phase 5: Roll out to every template
 - [ ] Phase 6: Verify
 - [ ] Phase 7: Report

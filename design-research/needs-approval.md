@@ -14,6 +14,8 @@ Changes this upgrade did NOT make because they are destructive, risky, touch the
 5. **Discogs catalog features** (`/api/v1/catalog/*`, `/api/v1/discogs/*`) need `DISCOGS_CONSUMER_KEY` / `DISCOGS_CONSUMER_SECRET`. The UI does not surface these endpoints until keys exist.
 6. **Transactional email** (verification, password reset) needs `EMAIL_USER` / `EMAIL_PASS` for a real provider.
 
+7a. **Newsletter and back-in-stock alerts.** Seven of nine competitors offer email signup. Needs a subscribers table (migration) and an email provider (item 6).
+
 ## Auth / security boundaries (found while mapping, not changed)
 
 7. **Login ignores 2FA.** `loginUser` (`controllers/authController.js`) issues access and refresh cookies even when the account has 2FA enabled, so the second factor is never enforced at sign-in. Fixing it changes the login contract (return a challenge instead of tokens).
