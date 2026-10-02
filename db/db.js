@@ -1,14 +1,10 @@
-import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
-import path from 'node:path'
+import sqlite3 from 'sqlite3'
 
+// DB_PATH lets tests (and other environments) use their own database file
 export async function getDBConnection() {
-
-const dbPath = path.join('database.db')
-
- return open({
-   filename: dbPath,
-   driver: sqlite3.Database
- }) 
- 
-} 
+  return open({
+    filename: process.env.DB_PATH || 'database.db',
+    driver: sqlite3.Database
+  })
+}

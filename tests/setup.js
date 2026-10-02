@@ -1,54 +1,26 @@
 // Jest setup file
-import fs from 'fs'
-import { open } from 'sqlite'
-import sqlite3 from 'sqlite3'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 // Set environment variables for all tests
 process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-with-32-characters-minimum'
 process.env.SESSION_SECRET = 'test-session-secret-for-testing-only-with-32-characters'
 process.env.NODE_ENV = 'test'
-process.env.DB_PATH = './test-database.db'
 
-// Global setup to create test database
+// Each test file gets its own throwaway database, so parallel workers never
+// share a file and no test touches the dev database.db. A test file may still
+// set its own DB_PATH at module level; it takes effect before these hooks run.
+const testDbPath = path.join(os.tmpdir(), `spiralsounds-test-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.db`)
+process.env.DB_PATH = testDbPath
+
 global.beforeAll(async () => {
-  // Clean up any existing test database
-  if (fs.existsSync('./test-database.db')) {
-    fs.unlinkSync('./test-database.db')
-  }
-  
-  // Create fresh test database with basic schema
-  const db = await open({
-    filename: './test-database.db',
-    driver: sqlite3.Database
-  })
-  
-  // Create basic tables for testing
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      is_verified BOOLEAN DEFAULT FALSE,
-      last_login DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS migrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE NOT NULL,
-      executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `)
-  
-  await db.close()
+  const { migrator } = await import('../db/migrator.js')
+  await migrator.runAllMigrations()
 })
 
-// Global cleanup
 global.afterAll(() => {
-  // Clean up test database
-  if (fs.existsSync('./test-database.db')) {
-    fs.unlinkSync('./test-database.db')
+  if (fs.existsSync(testDbPath)) {
+    fs.unlinkSync(testDbPath)
   }
 })

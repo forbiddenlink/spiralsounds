@@ -4,8 +4,9 @@ import path from 'node:path'
 import { logger } from '../middleware/errorHandler.js'
 
 export class DatabaseMigrator {
-  constructor() {
-    this.dbPath = process.env.DB_PATH || './database.db'
+  // Read on each use so a DB_PATH set after import (tests) is honoured
+  get dbPath() {
+    return process.env.DB_PATH || './database.db'
   }
 
   async getConnection() {
