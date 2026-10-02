@@ -1,70 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/index.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- PWA Meta Tags -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#06B6D4">
-  <meta name="msapplication-TileColor" content="#06B6D4">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- Apple Touch Icon -->
-  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
-
-  <title>Sign In - Spiral Sounds</title>
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="description" content="Sign in to your Spiral Sounds account to see your cart and saved records.">
+  <title>Sign in: Spiral Sounds</title>
+  <script src="/js/app/auth.js" type="module"></script>
 </head>
-
-<body>
-  <div class="auth-container">
-    <header class="auth-header">
-      <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo" class="auth-logo"></a>
-      <h1>Welcome Back</h1>
-      <p class="auth-subtitle">Sign in to your Spiral Sounds account</p>
-    </header>
-
-    <main class="auth-main">
-      <form class="auth-form" id="signin-form">
-        <div class="form-group">
-          <label for="signin-username">Username or Email</label>
-          <input type="text" id="signin-username" name="username" required autocomplete="username"
-            placeholder="Enter your username or email" />
-        </div>
-
-        <div class="form-group">
-          <label for="signin-password">Password</label>
-          <input type="password" id="signin-password" name="password" required autocomplete="current-password"
-            placeholder="Enter your password" />
-        </div>
-
-        <button type="submit" class="main-btn" id="login-btn">
-          <span class="btn-text">Sign In</span>
-          <div class="btn-spinner hidden"></div>
-        </button>
-
-        <div id="error-message" class="message hidden"></div>
+<body class="page-auth">
+  <div id="shell-top"></div>
+  <main id="main" class="auth">
+    <section class="auth-form"><div>
+      <h1>Welcome back to the counter</h1>
+      <p class="lede">Sign in to pick up your cart and saved records.</p>
+      <form id="login-form" data-form="login" novalidate>
+        <div class="field"><label for="username">Username or email</label>
+          <input class="input" id="username" name="username" autocomplete="username" required></div>
+        <div class="field"><label for="password">Password</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required></div>
+        <div class="notice notice--error" data-form-error role="alert" hidden></div>
+        <button class="btn btn--primary btn--block" type="submit">Sign in</button>
       </form>
-
-
-
-      <div class="auth-links">
-        <p><a href="/forgot-password.html">Forgot your password?</a></p>
-        <p>Don't have an account? <a href="/signup.html">Sign up</a></p>
-        <p><a href="/">← Back to Home</a></p>
+      <div class="auth-alt">
+        <a href="/forgot-password.html">Forgot your password?</a>
+        <p>New here? <a href="/signup.html" data-keep-next>Create an account</a></p>
       </div>
-    </main>
-  </div>
-
-  <script src="js/login.js" type="module"></script>
+    </div></section>
+<div class="auth-crate" aria-hidden="true">
+      <ul>
+        <li><img src="/images/vinyl3.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl7.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl2.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl6.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl10.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl4.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl8.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl1.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl5.webp" alt="" width="400" height="400"></li>
+      </ul>
+    </div>
+  </main>
 </body>
-
 </html>

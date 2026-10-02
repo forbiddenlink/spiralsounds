@@ -10,8 +10,8 @@ Screenshot tooling (outside repo): `/Volumes/LizsDisk/_wt/ss-tools/shot.mjs` (lo
 - [x] Phase 2: Research (`references.md`: 12 sites loaded, 7 blocked; `features.md`: 8 competitors loaded + Vinyl Me Please partial, Juno blocked)
 - [x] Phase 3: Decide (`plan.md`)
 - [x] Phase 4: Foundation + homepage
-- [→] Phase 5: Roll out to every template
-- [ ] Phase 6: Verify
+- [x] Phase 5: Roll out to every template
+- [→] Phase 6: Verify
 - [ ] Phase 7: Report
 
 ## Notes
@@ -39,3 +39,26 @@ Homepage rubric (1 to 5). Round 1 = first build (`screenshots/rounds/home-r1-*`)
 | Craft | 2 | 4.5 | R1: mobile wordmark overflowed, desktop menu icon leaked, CLS 0.78, sticker ARIA error. R2: Lighthouse mobile a11y 100 / best practices 100 / SEO 100, CLS 0, no horizontal overflow at 390px, zero console errors. |
 
 Verified by script (`ss-tools/home-flow.mjs`): bins filter (indie = 4), price sort, live search, empty state, clear, signed-out add shows sign-in toast, disc animation running.
+
+## Phase 5 results
+
+Every template rebuilt on the shared shell (`shell.js`: strip, header, footer, cart drawer, toasts). Screenshots: `screenshots/after/` (signed out), `after/authed/` (testuser), `after/admin/` (staff account), `after/dark/`, `after/states/` (forced states). Desktop 1440x900 and mobile 390x844 for each.
+
+API added in this phase: reviews carry a `mine` flag and no `user_id`; `PUT /api/v1/me` (display name, 2 to 50 chars); `/auth/session` returns `role`; HTML 404 for unknown non-API GETs; extensionless page URLs. Analytics dashboard 500s fixed (see needs-approval 18). 19 storefront tests pass.
+
+| Template | Status | POV | Type | Layout | Color | Motion | Fit | Memorable | Craft | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Home `/` | done | 4.5 | 4.5 | 4 | 4 | 4 | 4.5 | 4.5 | 4.5 | Phase 4. |
+| Record `/record.html` | done | 4.5 | 4.5 | 4.5 | 4.5 | 4 | 4.5 | 4.5 | 4.5 | R1: genre facts shouted in title case ("Free On Every Order"); related heading claimed "same bin" when it fell back to nearest year. Both fixed. |
+| Cart `/cart.html` + drawer | done | 4 | 4.5 | 4 | 4 | 4 | 4.5 | 4 | 4.5 | Signed out, empty (with favourites row), error, filled, ordered states all forced. |
+| Saved `/saved.html` | done | 4 | 4.5 | 4 | 4 | 4 | 4 | 4 | 4.5 | Unsave removes the tile via an `ss:saved` event, empty state on last removal. |
+| Sign in / sign up / forgot / reset / verify email / verify 2FA | done | 4 | 4 | 4.5 | 4.5 | 4 | 4.5 | 4 | 4.5 | R1 titles crowded the form column at width 135; set to width 125 and a smaller clamp. Field errors, form errors, success notices forced. |
+| Account `/account-settings.html` | done | 4 | 4.5 | 4 | 4 | 4 | 4.5 | 4 | 4.5 | 2FA round trip scripted with a real TOTP code (`ss-tools/twofa.mjs`): wrong code, enable, 10 backup codes, regenerate, wrong password, disable. |
+| Admin `/admin.html` | done | 4 | 4.5 | 4 | 4 | 4 | 4.5 | 4 | 4.5 | Staff view, forbidden (403) view, and error view. |
+| 404 | done | 4.5 | 4.5 | 4 | 4 | 4 | 4.5 | 4.5 | 4.5 | Real 404 status for pages, JSON 404 kept for `/api/*`. |
+
+R1 fixes applied across templates: mobile page titles overflowed at width 150 (`Shop dashboard`), now width 118 and `clamp(2.5rem, 12.5vw, 4rem)`; panels padded less on mobile; stat grid 2 columns on mobile; account page reads the role from `/auth/session` instead of probing a staff endpoint (which logged a 403 for every customer).
+
+Journeys scripted (`ss-tools/journeys.mjs`, zero page errors): wrong password message, sign in with `next` redirect, save, add to cart, drawer quantity +1, post and update a review, unsave from Saved, cart total, demo checkout clears count, page 404, missing record, API JSON 404, `/reset-password?token=` bad-token message.
+
+Not tested: the email links end to end (no email provider; item 6), 2FA at sign-in (login ignores 2FA; item 7), install prompt (needs a real browser profile).

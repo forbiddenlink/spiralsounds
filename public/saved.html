@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="description" content="Records you saved for later at Spiral Sounds.">
+  <title>Saved records: Spiral Sounds</title>
+  <script src="/js/app/saved.js" type="module"></script>
+</head>
+<body class="page-saved">
+  <div id="shell-top"></div>
+  <main id="main" class="wrap">
+    <h1 class="page-title">Saved for later</h1>
+    <p class="page-sub" id="saved-sub" aria-live="polite">&nbsp;</p>
+    <div id="saved" aria-busy="true" style="margin-top:48px"><ul class="records" id="saved-grid"></ul></div>
+  </main>
+  <div id="shell-foot"></div>
+</body>
+</html>

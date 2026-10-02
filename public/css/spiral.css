@@ -1734,6 +1734,9 @@ textarea {
 
 .facts dd {
   margin: 0;
+}
+
+.facts .cap {
   text-transform: capitalize;
 }
 
@@ -1832,6 +1835,26 @@ textarea {
   padding-top: var(--s-7);
 }
 
+@media (max-width: 720px) {
+  .page-title {
+    font-size: clamp(2.5rem, 12.5vw, 4rem);
+    font-variation-settings: 'wdth' 118;
+    padding-top: var(--s-6);
+  }
+
+  .panel {
+    padding: var(--s-5);
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .stat dd {
+    font-size: var(--t-2xl);
+  }
+}
+
 .page-sub {
   margin-top: var(--s-3);
   color: var(--dust);
@@ -1913,13 +1936,13 @@ textarea {
 
 .auth-form > div {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   margin-inline: auto;
 }
 
 .auth-form h1 {
-  font-size: clamp(2.5rem, 5vw, 3.75rem);
-  font-variation-settings: 'wdth' 135;
+  font-size: clamp(2.25rem, 4.2vw, 3.25rem);
+  font-variation-settings: 'wdth' 125;
   font-weight: 900;
   line-height: 0.92;
   letter-spacing: -0.02em;

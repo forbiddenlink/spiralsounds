@@ -37,7 +37,7 @@ authRouter.get('/session', optionalAuth, async (req, res, next) => {
     if (!userId) return res.json({ isLoggedIn: false })
     const user = await userRepository.findById(userId)
     if (!user) return res.json({ isLoggedIn: false })
-    res.json({ isLoggedIn: true, name: user.display_name || user.name || user.username })
+    res.json({ isLoggedIn: true, name: user.display_name || user.name || user.username, role: user.role || 'user' })
   } catch (error) {
     next(error)
   }

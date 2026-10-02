@@ -104,7 +104,8 @@ app.use(session({
 
 
 
-app.use(express.static('public'))
+// extensions: email links use /reset-password and /verify-email without .html
+app.use(express.static('public', { extensions: ['html'] }))
 
 // Import error handlers and migrations
 import { errorHandler, notFoundHandler, logger } from './middleware/errorHandler.js'
@@ -150,6 +151,14 @@ app.get('/api', (req, res) => {
 // Legacy health check (redirect to v1)
 app.get('/api/health', (req, res) => {
   res.status(301).redirect('/api/v1/health')
+})
+
+// Unknown pages get the shop's 404 page; unknown API paths keep the JSON 404 below
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && req.accepts('html')) {
+    return res.status(404).sendFile('404.html', { root: 'public' })
+  }
+  next()
 })
 
 // Error handling middleware (must be last)

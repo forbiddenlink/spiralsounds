@@ -68,7 +68,7 @@ analyticsRouter.get('/activity', requireAuth, requirePermission(PERMISSIONS.ANAL
 // Real-time metrics endpoints (admin only)
 analyticsRouter.get('/realtime', requireAuth, requirePermission(PERMISSIONS.ANALYTICS_VIEW), async (req, res) => {
   try {
-    const metrics = await AnalyticsService.getRealTimeMetrics()
+    const metrics = await AnalyticsService.getRealtimeMetrics()
     res.json({
       success: true,
       data: metrics,

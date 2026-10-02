@@ -239,13 +239,14 @@ export async function getProductById(req, res) {
     if (!product) {
       return res.status(404).json({ success: false, error: 'Product not found' })
     }
+    const viewerId = req.user?.userId || null
 
     const rating = await db.get(
       'SELECT COUNT(*) AS count, ROUND(AVG(rating), 1) AS average FROM reviews WHERE product_id = ?',
       [id]
     )
     const reviews = await db.all(
-      `SELECT r.id, r.rating, r.comment, r.created_at, r.updated_at,
+      `SELECT r.id, r.user_id, r.rating, r.comment, r.created_at, r.updated_at,
               COALESCE(u.display_name, u.name, u.username) AS author
        FROM reviews r JOIN users u ON u.id = r.user_id
        WHERE r.product_id = ?
@@ -264,7 +265,8 @@ export async function getProductById(req, res) {
       data: {
         product,
         rating: { count: rating.count, average: rating.average || 0 },
-        reviews,
+        // flag the viewer's own review without exposing other users' ids
+        reviews: reviews.map(({ user_id, ...r }) => ({ ...r, mine: Boolean(viewerId) && user_id === viewerId })),
         related
       }
     })

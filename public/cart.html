@@ -1,98 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/index.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- PWA Meta Tags -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#06B6D4">
-  <meta name="msapplication-TileColor" content="#06B6D4">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- Apple Touch Icon -->
-  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
-
-  <title>Cart - Spiral Sounds</title>
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="description" content="Your Spiral Sounds cart.">
+  <title>Your cart: Spiral Sounds</title>
+  <script src="/js/app/cart-page.js" type="module"></script>
 </head>
-
-<body>
-  <div class="top-banner">
-    <p id="greeting" class="top-banner-greeting"></p>
-    <button class="menu-toggle" aria-label="Toggle menu"><img src="images/menu.svg" alt=""></button>
-    <nav class="header-menu" aria-label="Main menu">
-      <a href="/login.html" id="login">Log in</a>
-      <a href="/signup.html" id="signup">Sign up</a>
-      <button class="main-btn" id="logout-btn">Log out</button>
-    </nav>
-  </div>
-
-  <header>
-    <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo"></a>
-    <div class="header-text">
-      <h1>Spiral Sounds</h1>
-      <p class="subhead">The best in vinyl</p>
-    </div>
-  </header>
-
-  <main class="cart-main">
-    <div class="cart-container">
-      <div class="cart-header">
-        <h2>🛒 Your Shopping Cart</h2>
-        <div class="cart-summary">
-          <span id="cart-item-count">0 items</span>
-        </div>
-      </div>
-      
-      <div class="cart-content">
-        <div class="cart-items-section">
-          <ul id="cart-list" class="cart-list"></ul>
-          <div id="empty-cart" class="empty-cart hidden">
-            <div class="empty-cart-icon">🎵</div>
-            <h3>Your cart is empty</h3>
-            <p>Discover amazing vinyl records and add them to your cart</p>
-            <a href="/" class="btn btn-primary">Start Shopping</a>
-          </div>
-        </div>
-        
-        <div class="cart-summary-section">
-          <div class="summary-card">
-            <h3>Order Summary</h3>
-            <div class="summary-line">
-              <span>Subtotal:</span>
-              <span id="cart-subtotal">$0.00</span>
-            </div>
-            <div class="summary-line">
-              <span>Shipping:</span>
-              <span>Free</span>
-            </div>
-            <div class="summary-line total">
-              <span>Total:</span>
-              <span id="cart-total">$0.00</span>
-            </div>
-            <button class="btn btn-primary checkout-btn" id="checkout-btn">
-              <span>Proceed to Checkout</span>
-              <span class="btn-icon">→</span>
-            </button>
-            <p id="user-message" class="user-message"></p>
-          </div>
-        </div>
-      </div>
-    </div>
+<body class="page-cart">
+  <div id="shell-top"></div>
+  <main id="main" class="wrap">
+    <h1 class="page-title">Your cart</h1>
+    <p class="page-sub" id="cart-sub" aria-live="polite">&nbsp;</p>
+    <div id="cart" aria-busy="true"><p class="muted" style="padding:48px 0">Loading your cart…</p></div>
   </main>
-  <footer>
-    <p>© Spiral Sounds</p>
-  </footer>
-  <script src="js/menu.js" type="module"></script>
-  <script src="js/cart.js" type="module"></script>
+  <div id="shell-foot"></div>
 </body>
-
 </html>

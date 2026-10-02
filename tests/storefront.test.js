@@ -211,3 +211,19 @@ describe('GET /api/v1/auth/session', () => {
     expect(res.body.name).toBe('Store Front')
   })
 })
+
+describe('PUT /api/v1/me', () => {
+  test('updates the display name shown on reviews and the header', async () => {
+    const res = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: 'Crate Digger' })
+    expect(res.status).toBe(200)
+    const session = await request(app).get('/api/v1/auth/session').set('Authorization', auth)
+    expect(session.body.name).toBe('Crate Digger')
+  })
+
+  test('rejects an empty or overlong name', async () => {
+    const empty = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: '  ' })
+    expect(empty.status).toBe(400)
+    const long = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: 'x'.repeat(51) })
+    expect(long.status).toBe(400)
+  })
+})

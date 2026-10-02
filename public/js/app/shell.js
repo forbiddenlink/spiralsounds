@@ -252,6 +252,7 @@ export async function toggleSave(productId, btn) {
       b.setAttribute('aria-pressed', String(!wasSaved))
       b.setAttribute('aria-label', `${wasSaved ? 'Save' : 'Unsave'} ${title}`)
     })
+    document.dispatchEvent(new CustomEvent('ss:saved', { detail: { id, saved: !wasSaved } }))
     toast(wasSaved ? 'Removed from saved records' : 'Saved for later', wasSaved ? {} : { action: 'View saved', href: '/saved.html' })
     return !wasSaved
   } catch (err) {
@@ -349,7 +350,7 @@ export function initShell({ active } = {}) {
   })
   bindLines(dlg.querySelector('[data-shell=drawer-body]'), () => renderDrawer())
 
-  document.querySelector('[data-shell=theme]').addEventListener('click', () => {
+  document.querySelector('[data-shell=theme]')?.addEventListener('click', () => {
     let t = 'system'
     try {
       t = localStorage.getItem('ss:theme') || 'system'
