@@ -405,12 +405,14 @@ export class DatabaseMigrator {
       // Add all columns
       const allColumns = [...oauthColumns, ...tfaColumns, ...securityColumns, ...profileColumns]
       
+      let added = 0
       for (const column of allColumns) {
         if (!existingColumns.includes(column.name)) {
           await db.exec(column.sql)
-          logger.info(`Added column ${column.name} to users table`)
+          added += 1
         }
       }
+      logger.info(`Added ${added} account and security columns to users table`)
 
       // Create OAuth sessions table
       await db.exec(`

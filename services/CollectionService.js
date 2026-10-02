@@ -160,10 +160,10 @@ export class CollectionService {
         params.push(condition)
       }
 
+      // Pick from constants rather than echoing the request value into SQL
       const validSortFields = ['title', 'artist', 'year', 'created_at', 'purchase_date', 'current_value', 'play_count']
-      const validSortOrders = ['asc', 'desc']
-      const orderBy = validSortFields.includes(sortBy) ? sortBy : 'created_at'
-      const order = validSortOrders.includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC'
+      const orderBy = validSortFields.find(field => field === sortBy) ?? 'created_at'
+      const order = String(sortOrder).toLowerCase() === 'asc' ? 'ASC' : 'DESC'
 
       const offset = (parseInt(page) - 1) * parseInt(limit)
 

@@ -85,8 +85,13 @@ export async function getProducts(req, res) {
     }
     const validSortOrders = ['asc', 'desc']
 
-    if (sortColumns[sortBy] && validSortOrders.includes(sortOrder.toLowerCase())) {
-      query += ` ORDER BY ${sortColumns[sortBy]} ${sortOrder.toUpperCase()}, title ASC`
+    // Only constant SQL reaches the query: the column comes from the map above
+    // (own keys only, so "constructor" and friends never match) and the
+    // direction is one of two literals.
+    const sortColumn = Object.hasOwn(sortColumns, sortBy) ? sortColumns[sortBy] : null
+    if (sortColumn && validSortOrders.includes(String(sortOrder).toLowerCase())) {
+      const direction = String(sortOrder).toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+      query += ` ORDER BY ${sortColumn} ${direction}, title ASC`
     } else {
       query += ' ORDER BY title ASC'
     }

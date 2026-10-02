@@ -8,6 +8,7 @@ import compression from 'compression'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import { sanitizeRequestBody } from './utils/sanitization.js'
+import { requireSameOrigin } from './middleware/sameOrigin.js'
 
 // Load environment variables
 dotenv.config()
@@ -72,15 +73,20 @@ const authLimiter = rateLimit({
     error: 'Too many authentication attempts. Please try again in 15 minutes.'
   }
 })
-app.use('/api/auth/login', authLimiter)
-app.use('/api/auth/register', authLimiter)
-app.use('/api/auth/forgot-password', authLimiter)
+// The site signs in through /api/v1; the limiter was only on the legacy paths
+for (const path of ['/auth/login', '/auth/register', '/auth/password/reset-request', '/auth/2fa/verify']) {
+  app.use(`/api/v1${path}`, authLimiter)
+  app.use(`/api${path}`, authLimiter)
+}
 
 // Body parsing and compression
 app.use(compression())
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
+
+// Refuse cross-site state changes on the cookie-authenticated API
+app.use('/api', requireSameOrigin)
 
 // XSS Protection - sanitize all incoming request bodies
 app.use(sanitizeRequestBody)
