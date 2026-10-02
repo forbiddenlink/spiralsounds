@@ -142,6 +142,32 @@ Tests after the follow-ups: 75 total, 14 failing, all 14 also failing on `origin
 
 The dev `database.db` was migrated (backup at the time: `/tmp/claude-501/pre-migrate.db`, not kept long term) and holds a few demo orders from browser testing.
 
+## Improvements round (2026-10-02, after review)
+
+These were chosen by impact. None needed new approvals.
+
+| Improvement | Why | Commit | Evidence |
+|---|---|---|---|
+| Strict auth rate limit on the real login path | The 5-per-15-minutes limiter was only on the legacy `/api/auth/*` paths. The site's `/api/v1/auth/login` had only the general 100-request limit | `d324b2e` | `curl`: the 6th failed sign-in returns 429. Integration test |
+| Cross-site write check | Cookie auth had no CSRF defence beyond `SameSite=lax` | `d324b2e` | `tests/sameOrigin.test.js` (6 tests). `curl` with a foreign `Origin` gets 403 |
+| SQL ordering built from constants | Two `ORDER BY` clauses echoed request values. `sortBy=constructor` reached the query | `d324b2e` | CodeQL alerts 25 and 26 closed |
+| Same-site sign-in redirect | `next=/\evil.com` sent people off-site after sign-in | `2c96836` | Browser test with 6 attack inputs: all stay on the site |
+| Test suite green and enforced | 14 tests had failed on `main` for months, and CI ignored failures | `d315c24` | 81 of 81 pass, twice in a row. CI no longer uses `continue-on-error` |
+| Guest cart | Signed-out visitors could not add anything to a cart | `6d17f92` | `ss-tools/guest-cart.mjs`, desktop and mobile: the guest adds 3 copies, signs in, and all 3 are in the account cart |
+| README, `docs/API.md`, `CLAUDE.md` | The README described features that no longer existed, and no API reference existed | `12c22fe` | |
+
+One CodeQL alert remains: `js/missing-token-validation`. CodeQL only recognises CSRF libraries, not the origin check in `middleware/sameOrigin.js`. The protection is real and tested. Dismissing the alert is the owner's call.
+
+### Next improvements worth doing
+
+Ranked by impact:
+
+1. **Real checkout with Stripe** (item 4). It needs keys.
+2. **Order confirmation and reset emails** (item 6). These need an email provider; the reset flow is built but sends nothing today.
+3. **Record metadata** such as tracklist, label, and pressing (item 2). Collectors look for it first on a record page.
+4. **Pretty record URLs** like `/record/selling-dogma` (item 12). They help search and sharing.
+5. **Search suggestions in the header.** `GET /products/search/suggestions` already exists, and the header search does not use it yet. No approval needed.
+
 ## Needs approval (full list)
 
 
