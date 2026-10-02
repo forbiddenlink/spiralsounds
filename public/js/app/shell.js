@@ -152,12 +152,12 @@ export function lineHtml(i, highlight = false) {
     <a href="${recordUrl(i.productId)}" tabindex="-1" aria-hidden="true">${cover(i, { size: 'sm', alt: '' })}</a>
     <div>
       <p class="line-title"><a href="${recordUrl(i.productId)}">${esc(i.title)}</a></p>
-      <p class="line-artist">${esc(i.artist)}</p>
+      <p class="line-artist">${esc(i.artist)}</p>${i.stock != null && i.quantity > i.stock ? `<p class="stock-note">${i.stock === 0 ? 'Sold out since you added it' : `Only ${i.stock} left`}</p>` : ''}
       <div class="line-controls">
         <div class="stepper" role="group" aria-label="Quantity of ${esc(i.title)}">
           <button type="button" data-qty="-1" aria-label="One fewer" ${i.quantity <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
           <output aria-live="polite">${esc(i.quantity)}</output>
-          <button type="button" data-qty="1" aria-label="One more" ${i.quantity >= 10 ? 'disabled' : ''}>${icon('plus')}</button>
+          <button type="button" data-qty="1" aria-label="One more" ${i.quantity >= Math.min(10, i.stock ?? 10) ? 'disabled' : ''}>${icon('plus')}</button>
         </div>
         <button type="button" class="link-btn muted" data-remove>Remove</button>
       </div>

@@ -59,7 +59,14 @@ async function render() {
       <section class="panel" aria-labelledby="g4"><h2 id="g4">Latest reviews</h2><p>What buyers are saying.</p>
         ${reviews.length ? `<ul class="review-list">${reviews.slice(0, 4).map(r => `<li class="review"><header><strong>${esc(r.product_title || r.title || 'Record')}</strong><span class="muted">${esc(r.rating)} of 5</span></header>${r.comment ? `<p>${esc(r.comment)}</p>` : ''}</li>`).join('')}</ul>` : '<p class="muted">No reviews yet.</p>'}</section>
     </div>
-    ${data.inventoryStatus ? '' : '<p class="notice" style="margin-top:16px">Stock levels are not tracked yet: the products table has no stock column. Adding one is listed for approval.</p>'}`
+    ${
+      data.inventoryStatus
+        ? `<section class="panel" aria-labelledby="g5" style="margin-top:16px"><h2 id="g5">Stock</h2><p>Lowest stock first. Copies leave stock when an order is placed.</p>
+          <table class="table"><thead><tr><th scope="col">Record</th><th scope="col">In stock</th><th scope="col">In carts</th></tr></thead><tbody>
+          ${data.inventoryStatus.products.slice(0, 8).map(p => `<tr><td><a href="/record.html?id=${p.id}">${esc(p.title)}</a><br><span class="muted">${esc(p.artist)}</span></td><td>${p.stock === 0 ? '<span class="stock-note">Sold out</span>' : p.stock <= 3 ? `<span class="stock-note">${num.format(p.stock)}</span>` : num.format(p.stock)}</td><td>${num.format(p.sold_count)}</td></tr>`).join('')}
+          </tbody></table></section>`
+        : '<p class="notice" style="margin-top:16px">Stock levels could not be loaded.</p>'
+    }`
 }
 
 initShell({ active: 'account' }).then(state => {

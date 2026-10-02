@@ -73,6 +73,8 @@ export const verifyEmail = token => api(`/auth/email/verify?token=${encodeURICom
 
 // ----- Cart -----
 export const getCart = async () => (await api('/cart')).items
+export const placeOrder = async () => (await api('/orders', { method: 'POST' })).order
+export const getOrders = async () => (await api('/orders')).orders
 export const getCartCount = async () => (await api('/cart/count')).totalItems
 export const addToCart = productId => api('/cart/items', { method: 'POST', body: { product_id: productId } })
 export const setQuantity = (itemId, quantity) => api(`/cart/items/${itemId}`, { method: 'PATCH', body: { quantity } })

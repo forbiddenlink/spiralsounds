@@ -53,16 +53,23 @@ export const disc = product =>
   `<div class="disc" aria-hidden="true"><div class="disc-label">${cover(product, { size: 'sm', alt: '' })}</div></div>`
 
 // One record in a grid. Cover and title share one link; add and save are separate buttons.
+// Low or no stock, said plainly. Plenty of stock says nothing.
+export function stockNote(stock) {
+  if (stock == null || stock > 3) return ''
+  return `<span class="stock-note">${stock === 0 ? 'Sold out' : `Only ${stock} left`}</span>`
+}
+
 export function recordTile(p, { saved = false, eager = false } = {}) {
+  const soldOut = p.stock === 0
   return `<li class="record" data-id="${esc(p.id)}">
     <span class="record-cover" style="--tilt:${tilt(p.id)}">${cover(p, { eager })}${sticker(p.price)}</span>
     <div class="record-meta">
       <h3 class="record-title"><a href="${recordUrl(p.id)}">${esc(p.title)}</a></h3>
       <p class="record-artist">${esc(p.artist)}</p>
-      <p class="record-facts"><span>${esc(p.year ?? '')}</span>${starsSummary(p.rating_avg, p.rating_count)}</p>
+      <p class="record-facts"><span>${esc(p.year ?? '')}</span>${starsSummary(p.rating_avg, p.rating_count)}${stockNote(p.stock)}</p>
     </div>
     <div class="record-actions">
-      <button type="button" class="btn btn--small" data-action="add" data-id="${esc(p.id)}" data-title="${esc(p.title)}">Add to cart</button>
+      <button type="button" class="btn btn--small${soldOut ? ' is-soldout' : ''}" data-action="add" data-id="${esc(p.id)}" data-title="${esc(p.title)}"${soldOut ? ' disabled' : ''}>${soldOut ? 'Sold out' : 'Add to cart'}</button>
       <button type="button" class="icon-btn save-btn" data-action="save" data-id="${esc(p.id)}" aria-pressed="${saved}" aria-label="Save ${esc(p.title)}">${icon('heart')}</button>
     </div>
   </li>`

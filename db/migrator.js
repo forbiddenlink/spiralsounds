@@ -78,7 +78,9 @@ export class DatabaseMigrator {
       { name: '008_create_search_analytics', fn: this.createSearchAnalyticsTable.bind(this) },
       { name: '009_add_oauth_2fa', fn: this.addOAuthAnd2FA.bind(this) },
       { name: '010_add_rbac_support', fn: this.addRBACSupport.bind(this) },
-      { name: '011_add_collection_support', fn: this.addCollectionSupport.bind(this) }
+      { name: '011_add_collection_support', fn: this.addCollectionSupport.bind(this) },
+      { name: '012_add_product_stock', fn: this.addProductStock.bind(this) },
+      { name: '013_create_orders', fn: this.createOrdersTables.bind(this) }
     ]
 
     for (const migration of migrations) {
@@ -631,6 +633,59 @@ export class DatabaseMigrator {
 
       logger.info('Vinyl collection support added successfully')
 
+    } finally {
+      await db.close()
+    }
+  }
+
+  // Stock per record. Existing rows get 12 copies, the figure the seeder has always defined.
+  async addProductStock() {
+    const db = await this.getConnection()
+    try {
+      const columns = await db.all('PRAGMA table_info(products)')
+      if (!columns.some(c => c.name === 'stock')) {
+        await db.exec('ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0')
+        await db.run('UPDATE products SET stock = 12')
+      }
+    } finally {
+      await db.close()
+    }
+  }
+
+  // Orders placed at checkout. Items copy title, artist, and price so an order
+  // still reads correctly after a product is edited.
+  async createOrdersTables() {
+    const db = await this.getConnection()
+    try {
+      await db.exec(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          subtotal REAL NOT NULL,
+          shipping REAL NOT NULL DEFAULT 0,
+          total REAL NOT NULL,
+          status TEXT NOT NULL DEFAULT 'placed',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS order_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          order_id INTEGER NOT NULL,
+          product_id INTEGER,
+          title TEXT NOT NULL,
+          artist TEXT NOT NULL,
+          image TEXT,
+          price REAL NOT NULL,
+          quantity INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+          FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items (order_id);
+      `)
     } finally {
       await db.close()
     }

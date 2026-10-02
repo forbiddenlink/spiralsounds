@@ -21,7 +21,7 @@ export class AnalyticsService {
         this.getGenreAnalytics(db),
         this.getUserBehavior(db),
         this.getRevenueData(db),
-        // products has no stock column yet (see design-research/needs-approval.md), so inventory may be unavailable
+        // inventory is optional on the dashboard; the rest still loads if it fails
         this.getInventoryStatus(db).catch(() => null),
         this.getRecentActivity(db)
       ])

@@ -11,7 +11,18 @@ export async function addToCart(req, res) {
 
  const userId = req.user?.userId
 
+ const product = await db.get('SELECT stock FROM products WHERE id = ?', [productId])
+ if (!product) {
+  return res.status(404).json({ error: 'Product not found' })
+ }
+
  const existing = await db.get('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?', [userId, productId])
+
+ // Never let a cart hold more copies than the shop has
+ const inCart = existing ? existing.quantity : 0
+ if (inCart + 1 > product.stock) {
+  return res.status(409).json({ error: product.stock === 0 ? 'This record is sold out' : `Only ${product.stock} in stock`, stock: product.stock })
+ }
 
  if (existing) {
   await db.run('UPDATE cart_items SET quantity = quantity + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [existing.id])
@@ -36,7 +47,7 @@ export async function getAll(req, res) {
 
   const db = await getDBConnection()
 
-  const items = await db.all(`SELECT ci.id AS cartItemId, ci.quantity, p.id AS productId, p.title, p.artist, p.price, p.image, p.genre, p.year FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?`, [req.user?.userId]) 
+  const items = await db.all(`SELECT ci.id AS cartItemId, ci.quantity, p.id AS productId, p.title, p.artist, p.price, p.image, p.genre, p.year, p.stock FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?`, [req.user?.userId]) 
 
   res.json({ items: items})
 }  
@@ -89,6 +100,14 @@ export async function updateItemQuantity(req, res) {
   }
 
   const db = await getDBConnection()
+
+  const line = await db.get(
+    'SELECT p.stock FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.id = ? AND ci.user_id = ?',
+    [itemId, req.user?.userId]
+  )
+  if (line && quantity > line.stock) {
+    return res.status(409).json({ error: `Only ${line.stock} in stock`, stock: line.stock })
+  }
 
   const result = await db.run(
     'UPDATE cart_items SET quantity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',

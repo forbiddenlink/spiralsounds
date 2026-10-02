@@ -508,6 +508,14 @@ textarea {
   pointer-events: none;
 }
 
+/* Sold out reads as a statement, not a faded call to action */
+.btn.is-soldout {
+  background: transparent;
+  border: 1px dashed var(--dust);
+  color: var(--dust);
+  opacity: 1;
+}
+
 .btn.is-done {
   background: var(--groove);
   border-color: var(--groove);
@@ -2233,4 +2241,46 @@ textarea {
   .chart-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Stock: plain words in the brand pink, never the sticker yellow (yellow means price) */
+.stock-note {
+  color: var(--spiral-ink);
+  font-weight: 700;
+  font-size: var(--t-xs);
+}
+
+.record-facts .stock-note {
+  margin-left: auto;
+}
+
+.order-list {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+
+.order {
+  border-top: 1px solid var(--rule);
+  padding-top: var(--s-4);
+}
+
+.order header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  align-items: baseline;
+}
+
+.order header strong:last-child {
+  margin-left: auto;
+}
+
+.order ul {
+  margin: var(--s-2) 0 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: var(--t-s);
 }

@@ -95,13 +95,14 @@ async function render() {
         <div class="buy-box">
           <div class="buy-row">
             <span style="--tilt:${tilt(p.id)}">${sticker(p.price, 'sticker--large')}</span>
-            <button type="button" class="btn btn--primary" data-action="add" data-id="${p.id}" data-title="${esc(p.title)}">Add to cart</button>
+            <button type="button" class="btn ${p.stock === 0 ? 'is-soldout' : 'btn--primary'}" data-action="add" data-id="${p.id}" data-title="${esc(p.title)}"${p.stock === 0 ? ' disabled' : ''}>${p.stock === 0 ? 'Sold out' : 'Add to cart'}</button>
             <button type="button" class="btn save-btn" data-action="save" data-id="${p.id}" aria-pressed="${saved}" aria-label="${saved ? 'Unsave' : 'Save'} ${esc(p.title)}">${icon('heart')}<span>Save</span></button>
           </div>
           ${p.description ? `<p class="prose" style="font-size:var(--t-l);line-height:1.45">${esc(p.description)}</p>` : ''}
           <dl class="facts">
             <dt>Artist</dt><dd>${esc(p.artist)}</dd>
             <dt>Released</dt><dd>${esc(p.year ?? 'Unknown')}</dd>
+            <dt>In stock</dt><dd>${p.stock === 0 ? 'Sold out' : `${esc(p.stock)} ${p.stock === 1 ? 'copy' : 'copies'}`}</dd>
             <dt>Bin</dt><dd class="cap"><a href="/?genre=${encodeURIComponent(p.genre)}">${esc(p.genre)}</a></dd>
             <dt>Format</dt><dd>Vinyl LP</dd>
             <dt>Shipping</dt><dd>Free on every order</dd>

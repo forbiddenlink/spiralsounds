@@ -1,7 +1,7 @@
 // Account: profile, two-step sign in (2FA), and sign out.
 import * as api from './api.js'
 import { initShell, session, signOut, toast } from './shell.js'
-import { esc } from './ui.js'
+import { esc, formatPrice } from './ui.js'
 
 const root = document.getElementById('account')
 const sub = document.getElementById('account-sub')
@@ -9,6 +9,7 @@ const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric'
 
 let user
 let twofa
+let orders
 
 function profileHtml() {
   return `<section class="panel" id="profile" aria-labelledby="profile-title">
@@ -48,6 +49,23 @@ function securityHtml() {
   </section>`
 }
 
+function ordersHtml(orders) {
+  return `<section class="panel" id="orders" aria-labelledby="orders-title">
+    <h2 id="orders-title">Orders</h2>
+    <p>Demo orders you placed. No payment was taken for any of them.</p>
+    ${
+      orders.length
+        ? `<ul class="order-list">${orders
+            .map(
+              o => `<li class="order"><header><strong>Order ${esc(o.id)}</strong><span class="muted">${esc(dateFmt.format(new Date(`${o.created_at.replace(' ', 'T')}Z`)))}</span><strong>${formatPrice(o.total)}</strong></header>
+              <ul>${o.items.map(i => `<li>${esc(i.quantity)} × <a href="/record.html?id=${esc(i.productId)}">${esc(i.title)}</a> <span class="muted">${esc(i.artist)}</span></li>`).join('')}</ul></li>`
+            )
+            .join('')}</ul>`
+        : '<p class="muted">No orders yet. <a href="/">Find a record</a>.</p>'
+    }
+  </section>`
+}
+
 function codesHtml(codes) {
   return `<div class="notice notice--ok" style="margin-top:16px"><strong>Save these backup codes somewhere safe.</strong> Each one works once if you lose your phone. They will not be shown again.
     <ul class="codes">${codes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
@@ -56,7 +74,7 @@ function codesHtml(codes) {
 
 async function render() {
   try {
-    ;[{ user }, twofa] = await Promise.all([api.getAuthStatus(), api.api('/auth/2fa/status')])
+    ;[{ user }, twofa, orders] = await Promise.all([api.getAuthStatus(), api.api('/auth/2fa/status'), api.getOrders()])
   } catch (err) {
     root.innerHTML = `<div class="state"><h2>Your account would not load</h2><p>${esc(err.message)}</p></div>`
     return
@@ -67,12 +85,12 @@ async function render() {
   root.removeAttribute('aria-busy')
   root.innerHTML = `<div class="account-grid">
     <nav class="side-nav" aria-label="Account sections">
-      <a href="#profile">Profile</a><a href="#security">Sign-in and security</a>
+      <a href="#profile">Profile</a><a href="#orders">Orders</a><a href="#security">Sign-in and security</a>
       <a href="/saved.html">Saved records</a><a href="/cart.html">Cart</a>
       ${isStaff ? '<a href="/admin.html">Shop dashboard</a>' : ''}
       <button type="button" class="btn btn--small" id="sign-out" style="margin-top:16px;justify-self:start">Sign out</button>
     </nav>
-    <div>${profileHtml()}${securityHtml()}</div></div>`
+    <div>${profileHtml()}${ordersHtml(orders)}${securityHtml()}</div></div>`
   bind()
 }
 
