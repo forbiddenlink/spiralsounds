@@ -120,8 +120,9 @@ export class DatabaseSeeder {
 
       for (const product of products) {
         await db.run(
-          'INSERT INTO products (title, artist, price, image, year, genre, stock, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [product.title, product.artist, product.price, product.image, product.year, product.genre, product.stock, product.description, new Date().toISOString(), new Date().toISOString()]
+          // products has no stock column (see db/migrator.js), so stock is not inserted
+          'INSERT INTO products (title, artist, price, image, year, genre, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [product.title, product.artist, product.price, product.image, product.year, product.genre, product.description, new Date().toISOString(), new Date().toISOString()]
         )
       }
 
