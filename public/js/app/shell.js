@@ -1,6 +1,7 @@
 // Shared page chrome: store strip, header, menu, footer, cart drawer, toasts,
 // session state, and the add-to-cart / save actions used on every page.
 import * as api from './api.js'
+import * as cart from './cart-store.js'
 import { esc, icon, cover, formatPrice, recordUrl } from './ui.js'
 
 const state = { me: null, count: 0, saved: new Set(), ready: null }
@@ -111,9 +112,8 @@ function paintCount(bump = false) {
 }
 
 export async function refreshCount(bump = false) {
-  if (!state.me) return
   try {
-    state.count = await api.getCartCount()
+    state.count = await cart.count(Boolean(state.me))
     paintCount(bump)
   } catch {
     // count is decorative; leave the last known value
@@ -124,14 +124,9 @@ export async function refreshCount(bump = false) {
 async function renderDrawer(highlightId) {
   const body = document.querySelector('[data-shell=drawer-body]')
   const foot = document.querySelector('[data-shell=drawer-foot]')
-  if (!state.me) {
-    body.innerHTML = `<div class="state"><h2>Sign in to start a cart</h2><p>Your cart is saved to your account, so it is there on any device.</p><a class="btn btn--primary" href="${signInHref()}">Sign in</a><a href="/signup.html">Create an account</a></div>`
-    foot.hidden = true
-    return
-  }
   body.innerHTML = '<p class="muted" style="padding:24px 0">Loading your cart…</p>'
   try {
-    const items = await api.getCart()
+    const items = await cart.lines(Boolean(state.me))
     if (!items.length) {
       body.innerHTML = `<div class="state"><h2>Nothing in the cart yet</h2><p>Dig through the bins and add something that catches your ear.</p><a class="btn" href="/">Browse records</a></div>`
       foot.hidden = true
@@ -141,7 +136,7 @@ async function renderDrawer(highlightId) {
     const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
     foot.hidden = false
     foot.innerHTML = `<div class="totals"><div><span>Subtotal</span><span>${formatPrice(subtotal)}</span></div><div class="muted"><span>Shipping</span><span>Free</span></div></div>
-      <a class="btn btn--primary btn--block" href="/cart.html">Review and check out</a>`
+      <a class="btn btn--primary btn--block" href="/cart.html">Review and check out</a>${state.me ? '' : '<p class="muted" style="font-size:var(--t-xs);margin:0">You will sign in at checkout. This cart stays in this browser until then.</p>'}`
   } catch (err) {
     body.innerHTML = `<div class="notice notice--error">${esc(err.message)}</div>`
   }
@@ -179,9 +174,9 @@ export function bindLines(root, onChange) {
     try {
       if (qtyBtn) {
         const current = Number(line.querySelector('output').textContent)
-        await api.setQuantity(id, current + Number(qtyBtn.dataset.qty))
+        await cart.setQuantity(id, current + Number(qtyBtn.dataset.qty))
       } else {
-        await api.removeLine(id)
+        await cart.remove(id)
         toast('Removed from your cart')
       }
       await refreshCount()
@@ -201,17 +196,13 @@ export function openDrawer(highlightId) {
 
 // ---------- Actions ----------
 export async function addRecord(productId, title, btn) {
-  if (!state.me) {
-    toast('Sign in to start a cart', { action: 'Sign in', href: signInHref() })
-    return
-  }
   const label = btn?.textContent
   if (btn) {
     btn.disabled = true
     btn.textContent = 'Adding…'
   }
   try {
-    await api.addToCart(productId)
+    await cart.add(productId, Boolean(state.me))
     await refreshCount(true)
     if (btn) {
       btn.classList.add('is-done')
@@ -388,11 +379,23 @@ export function initShell({ active } = {}) {
       account.setAttribute('aria-label', `Account: ${state.me.name}`)
       menuAccount.href = '/account-settings.html'
       menuAccount.textContent = 'Account'
+      // A cart built before signing in joins the account's cart
+      if (cart.hasGuestItems()) {
+        try {
+          const { moved, skipped } = await cart.mergeIntoAccount()
+          if (moved) toast(`${moved} record${moved === 1 ? '' : 's'} from before you signed in ${moved === 1 ? 'is' : 'are'} in your cart`)
+          if (skipped.length) toast('Some records you added earlier sold out and were left out', { tone: 'error' })
+        } catch {
+          // keep the guest cart for the next page load
+        }
+      }
       const [, saved] = await Promise.all([refreshCount(), api.getSaved().catch(() => [])])
       state.saved = new Set(saved.map(s => s.productId))
       document.querySelectorAll('[data-action=save]').forEach(b => {
         b.setAttribute('aria-pressed', String(state.saved.has(Number(b.dataset.id))))
       })
+    } else {
+      await refreshCount()
     }
     return state
   })()

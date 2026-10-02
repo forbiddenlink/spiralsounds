@@ -1,5 +1,6 @@
 // Cart page: lines with quantity steppers, order summary, and the demo checkout.
 import * as api from './api.js'
+import * as cart from './cart-store.js'
 import { initShell, session, bindLines, lineHtml, refreshCount, toast } from './shell.js'
 import { esc, formatPrice, recordTile } from './ui.js'
 
@@ -19,16 +20,10 @@ async function suggestions() {
 
 async function render() {
   root.setAttribute('aria-busy', 'true')
-  if (!session().me) {
-    sub.textContent = ''
-    root.innerHTML = `<div class="state"><h2>Sign in to see your cart</h2><p>Carts are saved to your account so they follow you between devices.</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn--primary" href="/login.html?next=%2Fcart.html">Sign in</a><a class="btn" href="/signup.html?next=%2Fcart.html">Create an account</a></div></div>`
-    root.removeAttribute('aria-busy')
-    return
-  }
+  const signedIn = Boolean(session().me)
   let items
   try {
-    items = await api.getCart()
+    items = await cart.lines(signedIn)
   } catch (err) {
     root.innerHTML = `<div class="state"><h2>Your cart would not load</h2><p>${esc(err.message)}</p><button class="btn" type="button" id="retry">Try again</button></div>`
     document.getElementById('retry').addEventListener('click', render)
@@ -56,11 +51,17 @@ async function render() {
         <div class="grand"><span>Total</span><span>${formatPrice(subtotal)}</span></div>
       </div>
       ${short ? '<p class="stock-note" role="alert">Remove or reduce the records marked above to check out.</p>' : ''}
-      <button class="btn btn--primary btn--block" type="button" id="checkout"${short ? ' disabled' : ''}>Place demo order</button>
-      <p class="muted" style="font-size:var(--t-xs)">This shop is a demo. Your order is saved to your account, but no payment is taken and nothing ships.</p>
+      ${
+        signedIn
+          ? `<button class="btn btn--primary btn--block" type="button" id="checkout"${short ? ' disabled' : ''}>Place demo order</button>
+      <p class="muted" style="font-size:var(--t-xs)">This shop is a demo. Your order is saved to your account, but no payment is taken and nothing ships.</p>`
+          : `<a class="btn btn--primary btn--block" href="/login.html?next=%2Fcart.html">Sign in to check out</a>
+      <a class="btn btn--block" href="/signup.html?next=%2Fcart.html">Create an account</a>
+      <p class="muted" style="font-size:var(--t-xs)">Your cart moves into your account when you sign in. Until then it stays in this browser.</p>`
+      }
     </aside></div>`
   bindLines(document.getElementById('lines'), render)
-  document.getElementById('checkout').addEventListener('click', checkout)
+  document.getElementById('checkout')?.addEventListener('click', checkout)
   root.removeAttribute('aria-busy')
 }
 
