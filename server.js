@@ -121,18 +121,19 @@ import { v1Router } from './routes/v1/index.js'
 // API Versioning
 app.use('/api/v1', v1Router)
 
-// Legacy routes (deprecated - redirect to v1)
+// Legacy routes (deprecated - redirect to v1). 308 keeps the method and body,
+// so an old client's POST still arrives as a POST instead of turning into a GET.
 app.use('/api/products', (req, res) => {
-  res.status(301).redirect('/api/v1/products' + req.url)
+  res.redirect(308, '/api/v1/products' + req.url)
 })
 app.use('/api/auth', (req, res) => {
-  res.status(301).redirect('/api/v1/auth' + req.url)
+  res.redirect(308, '/api/v1/auth' + req.url)
 })
 app.use('/api/cart', (req, res) => {
-  res.status(301).redirect('/api/v1/cart' + req.url)
+  res.redirect(308, '/api/v1/cart' + req.url)
 })
 app.use('/api/analytics', (req, res) => {
-  res.status(301).redirect('/api/v1/analytics' + req.url)
+  res.redirect(308, '/api/v1/analytics' + req.url)
 })
 
 // Main API info endpoint
