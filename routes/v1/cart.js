@@ -4,7 +4,8 @@ import {
   getCartCount, 
   getAll, 
   deleteItem, 
-  deleteAll 
+  deleteAll,
+  updateItemQuantity
 } from '../../controllers/cartController.js'
 import { requireAuth } from '../../middleware/requireAuth.js'
 
@@ -16,6 +17,7 @@ cartRouter.use(requireAuth)
 // Cart management endpoints
 cartRouter.get('/', getAll)
 cartRouter.post('/items', addToCart)
+cartRouter.patch('/items/:itemId', updateItemQuantity)
 cartRouter.delete('/items/:itemId', deleteItem)
 cartRouter.delete('/items', deleteAll)
 
@@ -23,6 +25,5 @@ cartRouter.delete('/items', deleteAll)
 cartRouter.get('/count', getCartCount)
 
 // Future cart endpoints
-// cartRouter.put('/items/:itemId', updateCartItem) // Update quantity
 // cartRouter.post('/checkout', checkoutCart) // Checkout process
 // cartRouter.get('/summary', getCartSummary) // Total price, tax, etc.
