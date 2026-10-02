@@ -7,10 +7,15 @@ import { esc } from './ui.js'
 initShell({ active: 'account' })
 
 const params = new URLSearchParams(location.search)
-// Only same-site paths are allowed as a post-sign-in destination
+// Only same-origin destinations are allowed after sign-in. Resolving against
+// this origin also catches tricks like "/\evil.com", which browsers read as "//evil.com".
 const nextUrl = (() => {
-  const n = params.get('next') || ''
-  return n.startsWith('/') && !n.startsWith('//') ? n : '/'
+  try {
+    const target = new URL(params.get('next') || '/', location.origin)
+    return target.origin === location.origin ? target.pathname + target.search + target.hash : '/'
+  } catch {
+    return '/'
+  }
 })()
 
 document.querySelectorAll('[data-keep-next]').forEach(a => {
