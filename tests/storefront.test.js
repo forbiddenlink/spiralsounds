@@ -174,3 +174,40 @@ describe('cart quantity and item details', () => {
     expect(res.status).toBe(400)
   })
 })
+
+describe('GET /api/v1/products list extras', () => {
+  test('each product carries its rating average and count', async () => {
+    const res = await request(app).get('/api/v1/products')
+    expect(res.status).toBe(200)
+    const p = res.body.data.products[0]
+    expect(p).toHaveProperty('rating_count')
+    expect(p).toHaveProperty('rating_avg')
+  })
+
+  test('sorts by year, newest first', async () => {
+    const res = await request(app).get('/api/v1/products?sortBy=year&sortOrder=desc')
+    const years = res.body.data.products.map(p => p.year)
+    expect(years).toEqual([...years].sort((a, b) => b - a))
+  })
+
+  test('sorts by rating, highest first', async () => {
+    const res = await request(app).get('/api/v1/products?sortBy=rating&sortOrder=desc')
+    const avgs = res.body.data.products.map(p => p.rating_avg || 0)
+    expect(avgs).toEqual([...avgs].sort((a, b) => b - a))
+  })
+})
+
+describe('GET /api/v1/auth/session', () => {
+  test('answers 200 for signed-out visitors so pages can check without an error', async () => {
+    const res = await request(app).get('/api/v1/auth/session')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ isLoggedIn: false })
+  })
+
+  test('returns the name for a signed-in visitor', async () => {
+    const res = await request(app).get('/api/v1/auth/session').set('Authorization', auth)
+    expect(res.status).toBe(200)
+    expect(res.body.isLoggedIn).toBe(true)
+    expect(res.body.name).toBe('Store Front')
+  })
+})

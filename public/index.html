@@ -1,83 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/index.css">
-  <link rel="stylesheet" href="css/enhanced-theme.css">
-  <link rel="stylesheet" href="css/enhanced-components.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- PWA Meta Tags -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#06B6D4">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Spiral Sounds">
-  <link rel="apple-touch-icon" href="/images/spiral_logo.png">
-  <meta name="description"
-    content="Discover and collect the finest vinyl records with Spiral Sounds - your premium music store">
-  <meta name="keywords" content="vinyl, records, music, albums, collectibles, premium">
-
-  <title>Spiral Sounds - Premium Vinyl Collection</title>
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <link rel="preload" as="image" href="/images/vinyl1.webp" type="image/webp">
+  <meta name="description" content="Spiral Sounds is a small online record shop. Dig through the bins by genre, save records for later, and fill your cart.">
+  <title>Spiral Sounds: records, by the bin</title>
+  <script src="/js/app/home.js" type="module"></script>
 </head>
-
-<body>
-  <!-- Theme Toggle Button -->
-  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light theme">
-    🌙
-  </button>
-
-  <div class="top-banner" id="top-banner">
-    <p id="greeting" class="top-banner-greeting"></p>
-    <a href="/cart.html" id="cart-banner" class="cart-banner-link"></a>
-    <button class="menu-toggle" aria-label="Toggle menu"><img src="images/menu.svg" alt=""></button>
-    <nav class="header-menu" aria-label="Main menu">
-      <a href="/login.html" id="login">Log in</a>
-      <a href="/signup.html" id="signup">Sign up</a>
-      <a href="/admin.html" id="admin-dashboard" class="hidden">📊 Dashboard</a>
-      <button class="main-btn" id="logout-btn">Log out</button>
-      <form role="search">
-        <label for="search-input" class="visually-hidden">Search products</label>
-        <input type="text" placeholder="Search..." id="search-input" autocomplete="off">
-      </form>
-    </nav>
-  </div>
-
-  <header>
-    <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo"></a>
-    <div class="header-text">
-      <h1>Spiral Sounds</h1>
-      <p class="subhead">The best in vinyl</p>
-    </div>
-  </header>
-  <main class="main-content">
-    <section class="genre-select-container">
-      <label for="genre-select">View by genre</label>
-      <select id="genre-select">
-        <option value="">Show All</option>
-      </select>
+<body class="page-home">
+  <div id="shell-top"></div>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <h1 class="wordmark" id="hero-title">
+        <span class="w1">Spiral</span>
+        <span class="w2">Sounds</span>
+        <span class="feature" aria-hidden="true">
+          <span class="on-counter" id="feature-art"><span class="sleeve"></span></span>
+        </span>
+      </h1>
+      <div class="hero-copy">
+        <p class="hero-lede">A small shop of new vinyl, sorted into bins. Dig through, save what catches your ear, and check out when you are ready.</p>
+        <div class="featured-note" id="featured-note" aria-live="polite">
+          <p class="kicker">On the counter this week</p>
+          <h2 class="skel" style="width:14ch">&nbsp;</h2>
+        </div>
+      </div>
     </section>
-    <section class="products" id="products-container"></section>
+
+    <section class="section wrap" id="shop" aria-labelledby="shop-title">
+      <div class="section-head">
+        <h2 id="shop-title">The bins</h2>
+      </div>
+      <div class="bins" role="group" aria-label="Choose a bin" id="bins">
+        <button type="button" class="bin" aria-pressed="true" data-genre="">All</button>
+      </div>
+      <div class="shop-controls">
+        <p class="result-count" id="result-count" aria-live="polite">&nbsp;</p>
+        <div class="filters">
+          <label class="visually-hidden" for="sort">Sort records</label>
+          <select class="select" id="sort">
+            <option value="title:asc">Title, A to Z</option>
+            <option value="artist:asc">Artist, A to Z</option>
+            <option value="year:desc">Newest release first</option>
+            <option value="rating:desc">Highest rated</option>
+            <option value="price:asc">Price, low to high</option>
+            <option value="price:desc">Price, high to low</option>
+          </select>
+          <label class="visually-hidden" for="price">Price</label>
+          <select class="select" id="price">
+            <option value="">Any price</option>
+            <option value=":40">Under $40</option>
+            <option value="40:45">$40 to $45</option>
+            <option value="45:">Over $45</option>
+          </select>
+        </div>
+      </div>
+      <ul class="records" id="grid" aria-busy="true"></ul>
+    </section>
+
+    <section class="section wrap" id="top-rated" aria-labelledby="top-title" hidden>
+      <div class="section-head">
+        <h2 id="top-title">Highest rated by buyers</h2>
+      </div>
+      <ul class="records" id="top-grid"></ul>
+    </section>
+
+    <section class="section wrap" id="recent" aria-labelledby="recent-title" hidden>
+      <div class="section-head">
+        <h2 id="recent-title">You looked at these</h2>
+        <button type="button" class="link-btn muted" id="recent-clear">Clear this list</button>
+      </div>
+      <div id="recent-list"></div>
+    </section>
   </main>
-  <footer>
-    <p>© Spiral Sounds</p>
-  </footer>
-  <!-- Parallax Background -->
-  <div class="parallax-bg" data-speed="0.3"></div>
-
-  <script src="js/performance.js" type="module"></script>
-  <script src="js/pwa.js" type="module"></script>
-  <script src="js/theme.js" type="module"></script>
-  <script src="js/websocketClient.js" type="module"></script>
-  <script src="js/advancedSearch.js" type="module"></script>
-  <script src="js/index.js" type="module"></script>
-  <script src="js/menu.js" type="module"></script>
+  <div id="shell-foot"></div>
 </body>
-
 </html>

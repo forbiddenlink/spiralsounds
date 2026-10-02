@@ -64,17 +64,29 @@ export async function getProducts(req, res) {
     }
 
     // Build the complete query
-    let query = 'SELECT * FROM products'
+    let query = `SELECT products.*,
+      (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE reviews.product_id = products.id) AS rating_avg,
+      (SELECT COUNT(*) FROM reviews WHERE reviews.product_id = products.id) AS rating_count
+      FROM products`
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`
     }
 
     // Add sorting
-    const validSortFields = ['title', 'artist', 'price', 'genre', 'id']
+    // Whitelisted sort keys mapped to SQL; rating sorts unrated records last
+    const sortColumns = {
+      title: 'title',
+      artist: 'artist',
+      price: 'price',
+      genre: 'genre',
+      id: 'id',
+      year: 'year',
+      rating: 'COALESCE(rating_avg, 0)'
+    }
     const validSortOrders = ['asc', 'desc']
-    
-    if (validSortFields.includes(sortBy) && validSortOrders.includes(sortOrder.toLowerCase())) {
-      query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`
+
+    if (sortColumns[sortBy] && validSortOrders.includes(sortOrder.toLowerCase())) {
+      query += ` ORDER BY ${sortColumns[sortBy]} ${sortOrder.toUpperCase()}, title ASC`
     } else {
       query += ' ORDER BY title ASC'
     }
