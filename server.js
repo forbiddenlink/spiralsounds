@@ -2,13 +2,13 @@ import express from 'express'
 import session from 'express-session'
 import helmet from 'helmet'
 import cors from 'cors'
-import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
 import compression from 'compression'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import { sanitizeRequestBody } from './utils/sanitization.js'
 import { requireSameOrigin } from './middleware/sameOrigin.js'
+import { apiLimiter, mountAuthLimits } from './middleware/rateLimits.js'
 
 // Load environment variables
 dotenv.config()
@@ -54,30 +54,9 @@ app.use(cors({
   credentials: true
 }))
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
-})
-app.use('/api/', limiter)
-
-// Stricter rate limiting for authentication endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
-  skipSuccessfulRequests: true,
-  message: {
-    error: 'Too many authentication attempts. Please try again in 15 minutes.'
-  }
-})
-// The site signs in through /api/v1; the limiter was only on the legacy paths
-for (const path of ['/auth/login', '/auth/register', '/auth/password/reset-request', '/auth/2fa/verify']) {
-  app.use(`/api/v1${path}`, authLimiter)
-  app.use(`/api${path}`, authLimiter)
-}
+// Rate limiting (middleware/rateLimits.js)
+app.use('/api/', apiLimiter())
+mountAuthLimits(app)
 
 // Body parsing and compression
 app.use(compression())

@@ -15,8 +15,6 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run migrate
-      - run: npm test
-        continue-on-error: true
+      - run: pnpm test
         env:
           NODE_OPTIONS: --experimental-vm-modules

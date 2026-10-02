@@ -1,360 +1,223 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals'
+import { beforeAll, describe, expect, test } from '@jest/globals'
 import request from 'supertest'
-import { getDBConnection } from '../db/db.js'
-import fs from 'fs'
 
-// Set test environment
-process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-with-32-characters-minimum'
-process.env.SESSION_SECRET = 'test-session-secret-for-testing-only-with-32-characters'
-process.env.NODE_ENV = 'test'
-process.env.DB_PATH = './test-integration.db'
-
-// Import app after setting environment
+// End-to-end checks of the v1 API as the site uses it: register, sign in,
+// cart, profile, system endpoints, error shapes, and the auth rate limit.
+// Runs against the throwaway database tests/setup.js creates for this file.
 let app
-let server
+let limitedApp
+let productId
+
+const PASSWORD = 'TestPassword123!'
+let userCounter = 0
+const newUser = () => {
+  userCounter += 1
+  const username = `integration${userCounter}`
+  return {
+    name: 'Integration User',
+    email: `${username}@example.com`,
+    username,
+    password: PASSWORD,
+    confirmPassword: PASSWORD,
+  }
+}
+
+const signedInToken = async () => {
+  const user = newUser()
+  await request(app).post('/api/v1/auth/register').send(user)
+  const res = await request(app)
+    .post('/api/v1/auth/login')
+    .send({ username: user.username, password: PASSWORD })
+  return { token: res.body.accessToken, user }
+}
 
 beforeAll(async () => {
-  // Clean up any existing test database
-  if (fs.existsSync('./test-integration.db')) {
-    fs.unlinkSync('./test-integration.db')
-  }
-  
-  // Import and setup app
-  const { createServer } = await import('http')
-  const express = await import('express')
-  
-  // Create a simple test app
-  app = express.default()
-  app.use(express.default.json())
-  
-  // Import and run migrations
-  const { migrator } = await import('../db/migrator.js')
-  await migrator.runAllMigrations()
-  
-  // Import routes
+  const express = (await import('express')).default
+  const cookieParser = (await import('cookie-parser')).default
+  const session = (await import('express-session')).default
+  const { DatabaseSeeder } = await import('../db/seeder.js')
+  const { getDBConnection } = await import('../db/db.js')
   const { v1Router } = await import('../routes/v1/index.js')
-  app.use('/api/v1', v1Router)
-  
-  server = createServer(app)
-})
+  const { errorHandler, notFoundHandler } = await import('../middleware/errorHandler.js')
+  const { mountAuthLimits } = await import('../middleware/rateLimits.js')
 
-afterAll(async () => {
-  // Close database connection
+  await new DatabaseSeeder().seedProducts()
   const db = await getDBConnection()
-  if (db) {
-    await db.close()
+  productId = (await db.get('SELECT id FROM products ORDER BY id LIMIT 1')).id
+  await db.close()
+
+  const build = ({ limits }) => {
+    const a = express()
+    a.use(express.json())
+    a.use(cookieParser())
+    a.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }))
+    if (limits) mountAuthLimits(a)
+    a.use('/api/v1', v1Router)
+    a.use(notFoundHandler)
+    a.use(errorHandler)
+    return a
   }
-  
-  // Clean up test database
-  if (fs.existsSync('./test-integration.db')) {
-    fs.unlinkSync('./test-integration.db')
-  }
-  
-  if (server) {
-    server.close()
-  }
+  app = build({ limits: false })
+  limitedApp = build({ limits: true })
 })
 
-describe('API Integration Tests', () => {
-  let authToken
-  let testUserId
-
-  beforeEach(async () => {
-    // Clean up test data
-    const db = await getDBConnection()
-    await db.run('DELETE FROM cart_items')
-    await db.run('DELETE FROM users WHERE email LIKE ?', ['test%'])
+describe('Authentication flow', () => {
+  test('registers a new user without returning the password', async () => {
+    const user = newUser()
+    const res = await request(app).post('/api/v1/auth/register').send(user).expect(201)
+    expect(res.body.success).toBe(true)
+    expect(res.body.user.email).toBe(user.email)
+    expect(res.body.user.password).toBeUndefined()
   })
 
-  describe('Authentication Flow', () => {
-    test('should register a new user successfully', async () => {
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'TestPassword123!'
-      }
-
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send(userData)
-        .expect(201)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.user.email).toBe(userData.email)
-      expect(response.body.data.user.password).toBeUndefined() // Password should not be returned
-    })
-
-    test('should login user and return JWT token', async () => {
-      // First register a user
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'TestPassword123!'
-      }
-
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(userData)
-
-      // Then login
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          username: userData.username,
-          password: userData.password
-        })
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.token).toBeDefined()
-      expect(response.body.data.user.email).toBe(userData.email)
-      
-      authToken = response.body.data.token
-      testUserId = response.body.data.user.id
-    })
-
-    test('should reject invalid credentials', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          username: 'nonexistent',
-          password: 'wrongpassword'
-        })
-        .expect(401)
-
-      expect(response.body.success).toBe(false)
-      expect(response.body.error.code).toBe('INVALID_CREDENTIALS')
-    })
+  test('signs in and returns an access token and cookie', async () => {
+    const user = newUser()
+    await request(app).post('/api/v1/auth/register').send(user)
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ username: user.username, password: PASSWORD })
+      .expect(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.accessToken).toBeDefined()
+    expect(res.body.user.email).toBe(user.email)
+    expect((res.headers['set-cookie'] || []).join(';')).toMatch(/accessToken=/)
   })
 
-  describe('Product Endpoints', () => {
-    test('should get all products', async () => {
-      const response = await request(app)
-        .get('/api/v1/products')
-        .expect(200)
+  test('rejects invalid credentials', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ username: 'nonexistent', password: 'wrongpassword' })
+      .expect(401)
+    expect(res.body.success).toBe(false)
+    expect(res.body.error.code).toBe('INVALID_CREDENTIALS')
+  })
+})
 
-      expect(response.body.success).toBe(true)
-      expect(Array.isArray(response.body.data.products)).toBe(true)
-      expect(response.body.data.pagination).toBeDefined()
-    })
-
-    test('should search products', async () => {
-      const response = await request(app)
-        .get('/api/v1/products?search=rock')
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(Array.isArray(response.body.data.products)).toBe(true)
-    })
-
-    test('should filter products by genre', async () => {
-      const response = await request(app)
-        .get('/api/v1/products?genre=Rock')
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(Array.isArray(response.body.data.products)).toBe(true)
-    })
-
-    test('should get product genres', async () => {
-      const response = await request(app)
-        .get('/api/v1/products/genres')
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(Array.isArray(response.body.data)).toBe(true)
-    })
+describe('Product endpoints', () => {
+  test('lists products with pagination', async () => {
+    const res = await request(app).get('/api/v1/products').expect(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.data.products.length).toBeGreaterThan(0)
+    expect(res.body.data.pagination).toBeDefined()
   })
 
-  describe('Cart Endpoints', () => {
-    beforeEach(async () => {
-      // Register and login a user for cart tests
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'TestPassword123!'
-      }
-
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(userData)
-
-      const loginResponse = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          username: userData.username,
-          password: userData.password
-        })
-
-      authToken = loginResponse.body.data.token
-      testUserId = loginResponse.body.data.user.id
-    })
-
-    test('should add item to cart', async () => {
-      const cartData = {
-        product_id: 1,
-        quantity: 2
-      }
-
-      const response = await request(app)
-        .post('/api/v1/cart')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(cartData)
-        .expect(201)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.item).toBeDefined()
-    })
-
-    test('should get cart items', async () => {
-      // First add an item
-      await request(app)
-        .post('/api/v1/cart')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ product_id: 1, quantity: 1 })
-
-      const response = await request(app)
-        .get('/api/v1/cart')
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(Array.isArray(response.body.data.items)).toBe(true)
-    })
-
-    test('should require authentication for cart operations', async () => {
-      const response = await request(app)
-        .get('/api/v1/cart')
-        .expect(401)
-
-      expect(response.body.success).toBe(false)
-      expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED')
-    })
+  test('searches products', async () => {
+    const res = await request(app).get('/api/v1/products?search=rock').expect(200)
+    expect(Array.isArray(res.body.data.products)).toBe(true)
   })
 
-  describe('User Profile Endpoints', () => {
-    beforeEach(async () => {
-      // Register and login a user
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'TestPassword123!'
-      }
-
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(userData)
-
-      const loginResponse = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          username: userData.username,
-          password: userData.password
-        })
-
-      authToken = loginResponse.body.data.token
-    })
-
-    test('should get user profile', async () => {
-      const response = await request(app)
-        .get('/api/v1/me')
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.user).toBeDefined()
-      expect(response.body.data.user.email).toBe('test@example.com')
-    })
-
-    test('should update user profile', async () => {
-      const updateData = {
-        name: 'Updated Name',
-        email: 'updated@example.com'
-      }
-
-      const response = await request(app)
-        .put('/api/v1/me')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(updateData)
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.user.name).toBe(updateData.name)
-    })
+  test('filters products by genre', async () => {
+    const res = await request(app).get('/api/v1/products?genre=rock').expect(200)
+    expect(res.body.data.products.every((p) => p.genre === 'rock')).toBe(true)
   })
 
-  describe('System Endpoints', () => {
-    test('should return health status', async () => {
-      const response = await request(app)
-        .get('/api/v1/health')
-        .expect(200)
+  test('lists genres', async () => {
+    const res = await request(app).get('/api/v1/products/genres').expect(200)
+    expect(Array.isArray(res.body.data)).toBe(true)
+  })
+})
 
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.status).toBe('healthy')
-    })
-
-    test('should return API info', async () => {
-      const response = await request(app)
-        .get('/api/v1/info')
-        .expect(200)
-
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.name).toBeDefined()
-      expect(response.body.data.version).toBeDefined()
-    })
+describe('Cart endpoints', () => {
+  test('adds an item to the cart', async () => {
+    const { token } = await signedInToken()
+    const res = await request(app)
+      .post('/api/v1/cart/items')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ product_id: productId })
+      .expect(200)
+    expect(res.body.message).toBe('Added to cart')
   })
 
-  describe('Error Handling', () => {
-    test('should handle 404 for non-existent routes', async () => {
-      const response = await request(app)
-        .get('/api/v1/nonexistent')
-        .expect(404)
-
-      expect(response.body.success).toBe(false)
-      expect(response.body.error.code).toBe('NOT_FOUND')
-    })
-
-    test('should handle validation errors', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          name: '', // Invalid empty name
-          email: 'invalid-email', // Invalid email format
-          username: '', // Invalid empty username
-          password: '123' // Invalid short password
-        })
-        .expect(400)
-
-      expect(response.body.success).toBe(false)
-      expect(response.body.error.code).toBe('VALIDATION_ERROR')
-    })
+  test('lists cart items', async () => {
+    const { token } = await signedInToken()
+    await request(app)
+      .post('/api/v1/cart/items')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ product_id: productId })
+    const res = await request(app)
+      .get('/api/v1/cart')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+    expect(res.body.items).toHaveLength(1)
+    expect(res.body.items[0]).toMatchObject({ productId, quantity: 1 })
   })
 
-  describe('Rate Limiting', () => {
-    test('should enforce rate limiting on auth endpoints', async () => {
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'TestPassword123!'
-      }
+  test('requires sign-in', async () => {
+    const res = await request(app).get('/api/v1/cart').expect(401)
+    expect(res.body.success).toBe(false)
+    expect(res.body.error.code).toBe('TOKEN_REQUIRED')
+  })
+})
 
-      // Make multiple rapid requests
-      const promises = Array(10).fill().map(() => 
-        request(app)
-          .post('/api/v1/auth/login')
-          .send({ username: 'nonexistent', password: 'wrong' })
+describe('Profile endpoints', () => {
+  test('returns the signed-in user', async () => {
+    const { token, user } = await signedInToken()
+    const res = await request(app)
+      .get('/api/v1/me')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+    expect(res.body).toMatchObject({ isLoggedIn: true, name: user.name })
+  })
+
+  test('updates the display name', async () => {
+    const { token } = await signedInToken()
+    await request(app)
+      .put('/api/v1/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ displayName: 'Updated Name' })
+      .expect(200)
+    const res = await request(app)
+      .get('/api/v1/auth/session')
+      .set('Authorization', `Bearer ${token}`)
+    expect(res.body.name).toBe('Updated Name')
+  })
+})
+
+describe('System endpoints', () => {
+  test('reports health', async () => {
+    const res = await request(app).get('/api/v1/health').expect(200)
+    expect(res.body.status).toBe('OK')
+  })
+
+  test('describes the API', async () => {
+    const res = await request(app).get('/api/v1/info').expect(200)
+    expect(res.body.name).toBeDefined()
+    expect(res.body.version).toBe('v1')
+  })
+})
+
+describe('Error handling', () => {
+  test('404s unknown routes as JSON', async () => {
+    const res = await request(app).get('/api/v1/nonexistent').expect(404)
+    expect(res.body.success).toBe(false)
+    expect(res.body.error.code).toBe('NOT_FOUND')
+  })
+
+  test('reports validation errors per field', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send({ name: '', email: 'invalid-email', username: '', password: '123' })
+      .expect(400)
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+    expect(res.body.error.details.validationErrors.map((e) => e.field)).toEqual(
+      expect.arrayContaining(['email', 'password'])
+    )
+  })
+})
+
+describe('Rate limiting', () => {
+  test('limits failed sign-ins on the v1 login path to 5 per window', async () => {
+    const statuses = []
+    for (let i = 0; i < 7; i++) {
+      statuses.push(
+        (
+          await request(limitedApp)
+            .post('/api/v1/auth/login')
+            .send({ username: 'nonexistent', password: 'wrong' })
+        ).status
       )
-
-      const responses = await Promise.all(promises)
-      
-      // Some requests should be rate limited
-      const rateLimitedResponses = responses.filter(res => res.status === 429)
-      expect(rateLimitedResponses.length).toBeGreaterThan(0)
-    })
+    }
+    expect(statuses.slice(0, 5).every((s) => s === 401)).toBe(true)
+    expect(statuses.slice(5)).toEqual([429, 429])
   })
 })

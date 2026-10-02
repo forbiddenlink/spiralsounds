@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeAll, afterAll } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import bcrypt from 'bcryptjs'
-import { getDBConnection } from '../db/db.js'
 import fs from 'fs'
+import { getDBConnection } from '../db/db.js'
 
 // Set test environment before importing anything else
 process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-with-32-characters-minimum'
@@ -17,11 +17,11 @@ describe('Authentication System', () => {
     if (fs.existsSync('./test-database.db')) {
       fs.unlinkSync('./test-database.db')
     }
-    
+
     // Import migrator and run migrations
     const { migrator } = await import('../db/migrator.js')
     await migrator.runAllMigrations()
-    
+
     db = await getDBConnection()
   })
 
@@ -30,7 +30,7 @@ describe('Authentication System', () => {
     if (db) {
       await db.close()
     }
-    
+
     // Clean up test database
     if (fs.existsSync('./test-database.db')) {
       fs.unlinkSync('./test-database.db')
@@ -43,18 +43,25 @@ describe('Authentication System', () => {
         name: 'Test User',
         email: 'test@example.com',
         username: 'testuser',
-        password: 'TestPassword123!'
+        password: 'TestPassword123!',
       }
 
       const hashedPassword = await bcrypt.hash(userData.password, 12)
-      
+
       await db.run(
         'INSERT INTO users (name, email, username, password, is_verified, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-        [userData.name, userData.email, userData.username, hashedPassword, false, new Date().toISOString()]
+        [
+          userData.name,
+          userData.email,
+          userData.username,
+          hashedPassword,
+          false,
+          new Date().toISOString(),
+        ]
       )
 
       const user = await db.get('SELECT * FROM users WHERE username = ?', [userData.username])
-      
+
       expect(user).toBeTruthy()
       expect(user.email).toBe(userData.email)
       expect(user.password).not.toBe(userData.password)
@@ -66,18 +73,25 @@ describe('Authentication System', () => {
         name: 'Test User 2',
         email: 'test@example.com', // Same email as previous test
         username: 'testuser2',
-        password: 'TestPassword123!'
+        password: 'TestPassword123!',
       }
 
-      try {
-        await db.run(
+      await expect(
+        db.run(
           'INSERT INTO users (name, email, username, password, is_verified, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-          [userData.name, userData.email, userData.username, await bcrypt.hash(userData.password, 12), false, new Date().toISOString()]
+          [
+            userData.name,
+            userData.email,
+            userData.username,
+            await bcrypt.hash(userData.password, 4),
+            false,
+            new Date().toISOString(),
+          ]
         )
-        fail('Should have thrown constraint error')
-      } catch (error) {
-        expect(error.code).toBe('SQLITE_CONSTRAINT_UNIQUE')
-      }
+      ).rejects.toMatchObject({
+        code: 'SQLITE_CONSTRAINT',
+        message: expect.stringMatching(/UNIQUE/),
+      })
     })
   })
 
@@ -85,7 +99,7 @@ describe('Authentication System', () => {
     test('should validate correct password', async () => {
       const password = 'TestPassword123!'
       const user = await db.get('SELECT * FROM users WHERE username = ?', ['testuser'])
-      
+
       expect(user).toBeTruthy()
       const isValid = await bcrypt.compare(password, user.password)
       expect(isValid).toBe(true)
@@ -94,7 +108,7 @@ describe('Authentication System', () => {
     test('should reject invalid password', async () => {
       const wrongPassword = 'wrongpassword'
       const user = await db.get('SELECT * FROM users WHERE username = ?', ['testuser'])
-      
+
       expect(user).toBeTruthy()
       const isValid = await bcrypt.compare(wrongPassword, user.password)
       expect(isValid).toBe(false)
@@ -105,18 +119,18 @@ describe('Authentication System', () => {
     test('should update user login timestamp', async () => {
       const userId = 1
       const loginTime = new Date().toISOString()
-      
+
       await db.run('UPDATE users SET last_login = ? WHERE id = ?', [loginTime, userId])
-      
+
       const user = await db.get('SELECT last_login FROM users WHERE id = ?', [userId])
       expect(user.last_login).toBe(loginTime)
     })
 
     test('should handle user verification status', async () => {
       const userId = 1
-      
+
       await db.run('UPDATE users SET is_verified = ? WHERE id = ?', [true, userId])
-      
+
       const user = await db.get('SELECT is_verified FROM users WHERE id = ?', [userId])
       expect(user.is_verified).toBe(1) // SQLite returns 1 for true
     })
