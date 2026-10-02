@@ -21,7 +21,8 @@ export class AnalyticsService {
         this.getGenreAnalytics(db),
         this.getUserBehavior(db),
         this.getRevenueData(db),
-        this.getInventoryStatus(db),
+        // inventory is optional on the dashboard; the rest still loads if it fails
+        this.getInventoryStatus(db).catch(() => null),
         this.getRecentActivity(db)
       ])
 
@@ -114,7 +115,6 @@ export class AnalyticsService {
         p.price,
         p.image,
         p.genre,
-        p.stock,
         COALESCE(SUM(ci.quantity), 0) as units_sold,
         COALESCE(SUM(ci.quantity * p.price), 0) as revenue,
         COUNT(DISTINCT ci.user_id) as unique_buyers,
@@ -225,7 +225,7 @@ export class AnalyticsService {
       db.get(`
         SELECT 
           ROUND(
-            (COUNT(DISTINCT returning.user_id) * 100.0) / NULLIF(COUNT(DISTINCT all_users.user_id), 0), 2
+            (COUNT(DISTINCT returning_users.user_id) * 100.0) / NULLIF(COUNT(DISTINCT all_users.user_id), 0), 2
           ) as rate
         FROM (
           SELECT DISTINCT user_id FROM cart_items 
@@ -234,7 +234,7 @@ export class AnalyticsService {
         LEFT JOIN (
           SELECT DISTINCT user_id FROM cart_items 
           WHERE DATE(created_at) >= date('now', '-7 days')
-        ) returning ON all_users.user_id = returning.user_id
+        ) returning_users ON all_users.user_id = returning_users.user_id
       `),
       db.all(`
         SELECT 

@@ -1,200 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Two-Factor Authentication - Spiral Sounds</title>
-    <link rel="stylesheet" href="/css/index.css">
-    <link rel="stylesheet" href="/css/enhanced-theme.css">
-    <link rel="stylesheet" href="/css/enhanced-components.css">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/images/spiral_logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="description" content="Enter the code from your authenticator app to finish signing in.">
+  <title>Two-step sign in: Spiral Sounds</title>
+  <script src="/js/app/auth.js" type="module"></script>
 </head>
-<body class="auth-page">
-    <div class="auth-container">
-        <div class="auth-card glass-card">
-            <div class="auth-header">
-                <img src="/images/spiral_logo.png" alt="Spiral Sounds" class="auth-logo">
-                <h1>Two-Factor Authentication</h1>
-                <p>Enter the verification code from your authenticator app</p>
-            </div>
-
-            <form id="verify2faForm" class="auth-form">
-                <div class="form-group">
-                    <label for="token">Authentication Code</label>
-                    <input 
-                        type="text" 
-                        id="token" 
-                        name="token" 
-                        required 
-                        maxlength="8"
-                        placeholder="Enter 6-digit code or backup code"
-                        autocomplete="one-time-code"
-                        class="form-input"
-                    >
-                    <small class="form-hint">
-                        Enter the 6-digit code from your authenticator app, or use one of your 8-digit backup codes.
-                    </small>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-full-width">
-                    <span class="btn-text">Verify</span>
-                    <div class="btn-loader" style="display: none;"></div>
-                </button>
-            </form>
-
-            <div class="auth-links">
-                <a href="/login" class="auth-link">← Back to Login</a>
-            </div>
-
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
-            <div id="successMessage" class="success-message" style="display: none;"></div>
-        </div>
+<body class="page-auth">
+  <div id="shell-top"></div>
+  <main id="main" class="auth">
+    <section class="auth-form"><div>
+      <h1>Enter your code</h1>
+      <p class="lede">Open your authenticator app and type the 6-digit code for Spiral Sounds, or use one of your backup codes.</p>
+      <form id="twofa-form" data-form="twofa" novalidate>
+        <div class="field"><label for="code">Code</label>
+          <input class="input code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="9" required></div>
+        <div class="notice notice--error" data-form-error role="alert" hidden></div>
+        <button class="btn btn--primary btn--block" type="submit">Verify and sign in</button>
+      </form>
+      <div class="auth-alt"><a href="/login.html">Back to sign in</a></div>
+    </div></section>
+<div class="auth-crate" aria-hidden="true">
+      <ul>
+        <li><img src="/images/vinyl3.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl7.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl2.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl6.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl10.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl4.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl8.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl1.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl5.webp" alt="" width="400" height="400"></li>
+      </ul>
     </div>
-
-    <!-- Background Elements -->
-    <div class="particles-container"></div>
-    
-    <!-- Scripts -->
-    <script src="/js/theme.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('verify2faForm')
-            const tokenInput = document.getElementById('token')
-            const errorDiv = document.getElementById('errorMessage')
-            const successDiv = document.getElementById('successMessage')
-
-            // Auto-format token input
-            tokenInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '') // Remove non-digits
-                if (value.length <= 6) {
-                    // Format as 6-digit TOTP
-                    e.target.value = value
-                } else if (value.length <= 8) {
-                    // Allow 8-digit backup codes
-                    e.target.value = value
-                }
-            })
-
-            // Handle form submission
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault()
-
-                const token = tokenInput.value.trim()
-                if (!token) {
-                    showError('Please enter your authentication code')
-                    return
-                }
-
-                // Get userId from URL params or session storage
-                const urlParams = new URLSearchParams(window.location.search)
-                const userId = urlParams.get('user') || sessionStorage.getItem('pendingAuthUserId')
-
-                if (!userId) {
-                    showError('Session expired. Please login again.')
-                    setTimeout(() => {
-                        window.location.href = '/login'
-                    }, 2000)
-                    return
-                }
-
-                const submitBtn = form.querySelector('button[type="submit"]')
-                const btnText = submitBtn.querySelector('.btn-text')
-                const btnLoader = submitBtn.querySelector('.btn-loader')
-
-                try {
-                    // Show loading state
-                    submitBtn.disabled = true
-                    btnText.style.display = 'none'
-                    btnLoader.style.display = 'block'
-
-                    const response = await fetch('/api/auth/2fa/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ token, userId })
-                    })
-
-                    const data = await response.json()
-
-                    if (response.ok && data.accessToken) {
-                        showSuccess('Authentication successful! Redirecting...')
-                        
-                        // Store tokens (if using localStorage, otherwise they should be in cookies)
-                        if (data.accessToken) {
-                            localStorage.setItem('accessToken', data.accessToken)
-                        }
-                        if (data.refreshToken) {
-                            localStorage.setItem('refreshToken', data.refreshToken)
-                        }
-
-                        // Clear pending auth data
-                        sessionStorage.removeItem('pendingAuthUserId')
-
-                        // Redirect to dashboard or home
-                        setTimeout(() => {
-                            window.location.href = '/'
-                        }, 1500)
-                    } else {
-                        showError(data.message || 'Verification failed')
-                    }
-
-                } catch (error) {
-                    console.error('2FA verification error:', error)
-                    showError('Network error. Please try again.')
-                } finally {
-                    // Reset loading state
-                    submitBtn.disabled = false
-                    btnText.style.display = 'block'
-                    btnLoader.style.display = 'none'
-                }
-            })
-
-            function showError(message) {
-                errorDiv.textContent = message
-                errorDiv.style.display = 'block'
-                successDiv.style.display = 'none'
-
-                // Add shake animation
-                errorDiv.classList.add('shake')
-                setTimeout(() => errorDiv.classList.remove('shake'), 600)
-            }
-
-            function showSuccess(message) {
-                successDiv.textContent = message
-                successDiv.style.display = 'block'
-                errorDiv.style.display = 'none'
-            }
-
-            // Auto-focus token input
-            tokenInput.focus()
-
-            // Handle paste events for easy code entry
-            tokenInput.addEventListener('paste', function(e) {
-                setTimeout(() => {
-                    const value = e.target.value.replace(/\D/g, '')
-                    if (value.length === 6 || value.length === 8) {
-                        // Auto-submit for 6-digit TOTP or 8-digit backup codes
-                        form.dispatchEvent(new Event('submit'))
-                    }
-                }, 10)
-            })
-        })
-
-        // Add CSS for shake animation
-        const style = document.createElement('style')
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-            .shake {
-                animation: shake 0.6s ease-in-out;
-            }
-        `
-        document.head.appendChild(style)
-    </script>
+  </main>
 </body>
 </html>

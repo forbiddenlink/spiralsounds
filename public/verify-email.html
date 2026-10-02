@@ -1,39 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/index.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plaster&family=Poppins:wght@400;600;700&display=swap"
-    rel="stylesheet">
-  <title>Email Verification - Spiral Sounds</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="description" content="Confirm the email address on your Spiral Sounds account.">
+  <title>Confirm your email: Spiral Sounds</title>
+  <script src="/js/app/auth.js" type="module"></script>
 </head>
-
-<body>
-  <div class="auth-container">
-    <header class="auth-header">
-      <a href="/"><img src="/images/spiral_logo.png" alt="Spiral Sounds Logo" class="auth-logo"></a>
-      <h1>Email Verification</h1>
-      <p class="auth-subtitle">Verifying your email address...</p>
-    </header>
-
-    <main class="auth-main">
-      <div id="verification-status" class="verification-content">
-        <div class="spinner-large"></div>
-        <p>Please wait while we verify your email...</p>
-      </div>
-
-      <div class="auth-links">
-        <p><a href="/login.html">Go to Login</a></p>
-        <p><a href="/">Return to Home</a></p>
-      </div>
-    </main>
-  </div>
-
-  <script src="js/verifyEmail.js" type="module"></script>
+<body class="page-auth">
+  <div id="shell-top"></div>
+  <main id="main" class="auth">
+    <section class="auth-form"><div>
+      <h1>Confirming your email</h1>
+      <div data-verify role="status" aria-live="polite"><p class="lede">One moment while we check your link…</p></div>
+    </div></section>
+<div class="auth-crate" aria-hidden="true">
+      <ul>
+        <li><img src="/images/vinyl3.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl7.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl2.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl6.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl10.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl4.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl8.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl1.webp" alt="" width="400" height="400"></li>
+        <li><img src="/images/vinyl5.webp" alt="" width="400" height="400"></li>
+      </ul>
+    </div>
+  </main>
 </body>
-
 </html>

@@ -1,73 +1,82 @@
 # Spiral Sounds
 
-<div align="center">
+A small vinyl record shop, built as a full-stack portfolio project. It pairs an Express 5 API on SQLite with a no-build vanilla JavaScript frontend designed like the counter of an independent record store.
 
-![Spiral Sounds Logo](public/images/spiral_logo.png)
+![Spiral Sounds home page: a stretched wordmark, the featured record sliding out of its sleeve, and genre bins below](design-research/screenshots/after/home-desktop.jpg)
 
-**A full-stack vinyl record store PWA: Express 5 API + a vanilla-JS frontend**
+The checkout is a demo. Orders are recorded and stock goes down, but no payment is taken and nothing ships. The site says so in a strip at the top of every page.
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-5-blue.svg)](https://expressjs.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-3-blue.svg)](https://sqlite.org/)
+## What you can do
 
-</div>
+- **Browse the bins.** Filter by genre, search by artist or title, sort by title, artist, price, year, or rating, and set a price range. Filters live in the URL, so you can share a view.
+- **Open a record.** See the cover with a disc sliding out of its sleeve, the price, stock, facts, buyer reviews, related records, and the records you viewed recently.
+- **Save and buy.** Save records for later, add them to a cart drawer, change quantities, and place a demo order. A cart can never hold more copies than are in stock.
+- **Manage your account.** Change your display name, see past orders, reset your password by email, and turn on two-step sign-in with an authenticator app and backup codes.
+- **Run the shop.** Staff accounts (`admin`, `super_admin`, `moderator`) see a dashboard with catalog, price, review, and stock figures.
 
-## What it is
+The site supports:
 
-Spiral Sounds is a full-stack vinyl record store: an Express 5 API backend with a vanilla-JS
-PWA frontend served from `public/`, SQLite persistence, JWT auth with TOTP-based 2FA, and
-Discogs/MusicBrainz integration for record metadata.
-
-## Features
-
-- **Product catalog**: searchable, filterable vinyl collection with genre filters
-- **Cart and wishlist**: persistent cart, quantity management, saved favorites
-- **Auth**: JWT-based auth with refresh tokens, TOTP 2FA (`speakeasy`), role-based access control
-- **Real-time**: Socket.IO/`ws` for live cart and analytics updates
-- **PWA**: installable, offline-capable via a service worker and web app manifest
-- **Record metadata**: Discogs and MusicBrainz API integration
-- **Security**: `helmet`, rate limiting (`express-rate-limit`), input validation (`joi`,
-  `express-validator`), XSS sanitization (`dompurify`/`xss`)
+- Light and dark themes.
+- Phone-width screens, keyboard-only use, and reduced motion.
+- Installing as a PWA, with an offline page when the network drops.
 
 ## Stack
 
-- Node.js, Express 5, SQLite (via `sqlite` + `sqlite3`), Socket.IO/`ws`
-- Auth: `jsonwebtoken`, `bcryptjs`, `speakeasy` (TOTP 2FA), `express-session`
-- Jest 30 (ESM) + Supertest for API tests, Biome 2 for lint/format
-- Package manager: **pnpm** (`packageManager` pin + `pnpm-lock.yaml`)
+- **Server:** Node.js 22, Express 5, SQLite (`sqlite` + `sqlite3`), Socket.IO.
+- **Auth:** JWT access and refresh tokens in httpOnly cookies, `bcryptjs`, TOTP two-step sign-in (`speakeasy`), role-based access control.
+- **Frontend:** static HTML and ES modules in `public/`, with no build step. The fonts are Anybody and Atkinson Hyperlegible Next, from Google Fonts. The content security policy allows scripts from this origin only.
+- **Tooling:** Jest 30 (ESM), Supertest, Biome 2, pnpm.
 
 ## Quickstart
+
+You need Node.js 22 and pnpm.
 
 ```bash
 git clone git@github.com:forbiddenlink/spiralsounds.git
 cd spiralsounds
 pnpm install
-cp .env.example .env       # fill in the values below
-pnpm setup                 # migrate && seed && start
+cp .env.example .env    # then set JWT_SECRET and SESSION_SECRET
+pnpm setup              # migrate, seed, and start
 ```
 
-Open `http://localhost:8000` (or whatever `PORT` is set to).
+Open `http://localhost:8000`, or the port you set in `PORT`. To sign in, use the seeded account `testuser` with the password `TestPassword123!`.
+
+To make an account a staff account, set its role in the database:
+
+```bash
+sqlite3 database.db "UPDATE users SET role = 'admin' WHERE username = 'testuser'"
+```
 
 ## Environment variables
 
-See `.env.example` for the full list with descriptions. At minimum, `SESSION_SECRET` and
-`JWT_SECRET` are required; the server throws on boot if `SESSION_SECRET` is missing.
+`.env.example` lists every variable with a description. Two are required:
 
-Key vars: `PORT`, `NODE_ENV`, `SESSION_SECRET`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `DB_PATH`,
-`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`, `DISCOGS_CONSUMER_KEY`,
-`DISCOGS_CONSUMER_SECRET`, `EMAIL_SERVICE`, `EMAIL_USER`, `EMAIL_PASS`, `TWO_FA_ISSUER`.
+- `SESSION_SECRET`: the server refuses to start without it.
+- `JWT_SECRET`: signing tokens fails without it.
+
+Generate each with `openssl rand -base64 32`.
+
+| Variable | Purpose |
+|---|---|
+| `PORT`, `NODE_ENV`, `CLIENT_URL` | Where the server listens, and the site origin used in emails, CORS, and the cross-site check |
+| `DB_PATH` | SQLite file (default `./database.db`) |
+| `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN` | Token signing and lifetimes |
+| `SESSION_SECRET`, `COOKIE_MAX_AGE` | Session cookie |
+| `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` | General API rate limit |
+| `EMAIL_SERVICE`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM` | Verification and password reset email. Without them, no email is sent; the failure is logged |
+| `DISCOGS_CONSUMER_KEY`, `DISCOGS_CONSUMER_SECRET` | Discogs catalog endpoints, which the shop pages do not use yet |
+| `TWO_FA_ISSUER`, `TWO_FA_SERVICE_NAME` | Name shown in authenticator apps |
 
 ## Scripts
 
 ```bash
 pnpm start           # node server.js
 pnpm dev             # node --watch server.js
-pnpm migrate         # run DB migrations (db/migrations)
-pnpm seed            # seed sample data
-pnpm setup           # migrate && seed && start
-pnpm reset-db        # delete database.db, re-migrate, re-seed
-pnpm test            # jest (ESM mode)
-pnpm test:watch
+pnpm migrate         # run database migrations
+pnpm seed            # seed 10 sample records, a test user, and sample reviews
+pnpm setup           # migrate, seed, start
+pnpm reset-db        # delete database.db, then migrate and seed again
+pnpm test            # Jest; each test file gets its own throwaway database
 pnpm test:coverage
 pnpm biome:check
 pnpm biome:fix
@@ -77,23 +86,47 @@ pnpm biome:fix
 
 ```
 spiralsounds/
-├── controllers/     # Route handlers (auth, cart, collection, discogs, me, products)
-├── routes/v1/       # Versioned API routes
-├── services/        # Business logic (Analytics, Collection, Discogs, MusicBrainz, 2FA)
-├── repositories/     # Data access layer
-├── middleware/       # errorHandler, rbac, requireAuth
-├── utils/            # jwt, sanitization, validation, email, grading
-├── db/                # Connection, migrator, seeder, migrations
-├── websocket/         # Socket.IO setup
-├── public/            # PWA frontend (vanilla JS, service worker, manifest)
-├── tests/             # Jest specs
-└── server.js          # App entry point
+├── server.js            # App entry: security headers, CSP, rate limits, routes, 404 page
+├── routes/v1/           # Versioned API (see docs/API.md)
+├── controllers/         # Request handlers: auth, products, cart, orders, wishlist, me
+├── services/            # Analytics, 2FA, Discogs, MusicBrainz, collection
+├── repositories/        # Data access helpers
+├── middleware/          # Errors and logging, auth, RBAC, rate limits, same-origin check
+├── utils/               # JWT, validation, sanitization, email, grading
+├── db/                  # Connection, migrator (numbered migrations), seeder
+├── public/              # The site: one HTML file per page, js/app/*.js, css/spiral.css, sw.js
+├── tests/               # Jest + Supertest specs
+└── design-research/     # How the redesign was researched, planned, scored, and verified
 ```
+
+The frontend modules in `public/js/app/` share one shell and one API client:
+
+- `shell.js`: header, footer, cart drawer, and toasts.
+- `api.js`: every call to the API.
+- One small module per page, such as `home.js`, `record.js`, and `cart-page.js`.
+
+## Security
+
+- Passwords are hashed with bcrypt. Tokens live in httpOnly, `SameSite=lax` cookies.
+- With two-step sign-in on, a correct password returns a 5-minute challenge instead of a session. Each challenge allows 5 wrong codes and works once.
+- Each IP gets 5 failed attempts per 15 minutes for sign-in, registration, reset requests, and code checks.
+- State-changing API requests from another site are refused by an origin check. This adds to the protection from `SameSite` cookies.
+- After sign-in, visitors are only redirected to pages on this site.
+- Helmet sets the security headers, and the content security policy allows scripts from this origin only.
 
 ## Deployment
 
-Deploys as a standard Node/Express app; no build step. Set the environment variables above,
-run `pnpm migrate && pnpm seed` once against the target database, then `pnpm start`.
+This is a standard Node app with no build step:
+
+1. Set the environment variables.
+2. Run `pnpm migrate`. On a new database, also run `pnpm seed`.
+3. Start with `pnpm start`.
+
+After every upgrade, run `pnpm migrate` again. Migrations are numbered, and each one runs only once.
+
+## Design
+
+The redesign's research, direction, scores, and before and after screenshots are in [`design-research/report.md`](design-research/report.md). Decisions still waiting on the owner are in [`design-research/needs-approval.md`](design-research/needs-approval.md).
 
 ## License
 

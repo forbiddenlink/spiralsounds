@@ -7,6 +7,8 @@ import { analyticsRouter } from "./analytics.js";
 import { discogsRouter } from "./discogs.js";
 import { collectionRouter } from "./collection.js";
 import { catalogRouter } from "./catalog.js";
+import { wishlistRouter } from "./wishlist.js";
+import { ordersRouter } from "./orders.js";
 
 export const v1Router = express.Router();
 
@@ -19,6 +21,8 @@ v1Router.use("/analytics", analyticsRouter);
 v1Router.use("/discogs", discogsRouter);
 v1Router.use("/collection", collectionRouter);
 v1Router.use("/catalog", catalogRouter);
+v1Router.use("/wishlist", wishlistRouter);
+v1Router.use("/orders", ordersRouter);
 
 // API v1 Health check
 v1Router.get("/health", (req, res) => {
@@ -46,6 +50,7 @@ v1Router.get("/info", (req, res) => {
       discogs: "/api/v1/discogs",
       collection: "/api/v1/collection",
       catalog: "/api/v1/catalog",
+      wishlist: "/api/v1/wishlist",
     },
     documentation: "/api/v1/docs", // Future Swagger docs
   });

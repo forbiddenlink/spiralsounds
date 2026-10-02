@@ -64,17 +64,34 @@ export async function getProducts(req, res) {
     }
 
     // Build the complete query
-    let query = 'SELECT * FROM products'
+    let query = `SELECT products.*,
+      (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE reviews.product_id = products.id) AS rating_avg,
+      (SELECT COUNT(*) FROM reviews WHERE reviews.product_id = products.id) AS rating_count
+      FROM products`
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`
     }
 
     // Add sorting
-    const validSortFields = ['title', 'artist', 'price', 'genre', 'id']
+    // Whitelisted sort keys mapped to SQL; rating sorts unrated records last
+    const sortColumns = {
+      title: 'title',
+      artist: 'artist',
+      price: 'price',
+      genre: 'genre',
+      id: 'id',
+      year: 'year',
+      rating: 'COALESCE(rating_avg, 0)'
+    }
     const validSortOrders = ['asc', 'desc']
-    
-    if (validSortFields.includes(sortBy) && validSortOrders.includes(sortOrder.toLowerCase())) {
-      query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`
+
+    // Only constant SQL reaches the query: the column comes from the map above
+    // (own keys only, so "constructor" and friends never match) and the
+    // direction is one of two literals.
+    const sortColumn = Object.hasOwn(sortColumns, sortBy) ? sortColumns[sortBy] : null
+    if (sortColumn && validSortOrders.includes(String(sortOrder).toLowerCase())) {
+      const direction = String(sortOrder).toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+      query += ` ORDER BY ${sortColumn} ${direction}, title ASC`
     } else {
       query += ' ORDER BY title ASC'
     }
@@ -212,5 +229,91 @@ export async function trackProductClick(req, res) {
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({error: 'Failed to track product click', details: err.message})
+  }
+}
+// Product detail: the record, its rating summary, reviews, and same-genre picks
+export async function getProductById(req, res) {
+  const id = Number.parseInt(req.params.id, 10)
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ success: false, error: 'Invalid product ID' })
+  }
+
+  const db = await getDBConnection()
+  try {
+    const product = await db.get('SELECT * FROM products WHERE id = ?', [id])
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' })
+    }
+    const viewerId = req.user?.userId || null
+
+    const rating = await db.get(
+      'SELECT COUNT(*) AS count, ROUND(AVG(rating), 1) AS average FROM reviews WHERE product_id = ?',
+      [id]
+    )
+    const reviews = await db.all(
+      `SELECT r.id, r.user_id, r.rating, r.comment, r.created_at, r.updated_at,
+              COALESCE(u.display_name, u.name, u.username) AS author
+       FROM reviews r JOIN users u ON u.id = r.user_id
+       WHERE r.product_id = ?
+       ORDER BY r.updated_at DESC`,
+      [id]
+    )
+    const related = await db.all(
+      `SELECT * FROM products WHERE id != ?
+       ORDER BY (genre = ?) DESC, ABS(COALESCE(year, 0) - ?) ASC
+       LIMIT 4`,
+      [id, product.genre, product.year || 0]
+    )
+
+    res.json({
+      success: true,
+      data: {
+        product,
+        rating: { count: rating.count, average: rating.average || 0 },
+        // flag the viewer's own review without exposing other users' ids
+        reviews: reviews.map(({ user_id, ...r }) => ({ ...r, mine: Boolean(viewerId) && user_id === viewerId })),
+        related
+      }
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch product', details: err.message })
+  } finally {
+    await db.close()
+  }
+}
+
+// Create or replace the signed-in user's review of a product
+export async function upsertReview(req, res) {
+  const productId = Number.parseInt(req.params.id, 10)
+  const rating = Number(req.body.rating)
+  const comment = typeof req.body.comment === 'string' ? req.body.comment.trim().slice(0, 2000) : ''
+
+  if (Number.isNaN(productId)) {
+    return res.status(400).json({ success: false, error: 'Invalid product ID' })
+  }
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ success: false, error: 'Rating must be a whole number from 1 to 5' })
+  }
+
+  const db = await getDBConnection()
+  try {
+    const product = await db.get('SELECT id FROM products WHERE id = ?', [productId])
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' })
+    }
+
+    await db.run(
+      `INSERT INTO reviews (user_id, product_id, rating, comment, created_at, updated_at)
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT(user_id, product_id)
+       DO UPDATE SET rating = excluded.rating, comment = excluded.comment, updated_at = CURRENT_TIMESTAMP`,
+      [req.user.userId, productId, rating, comment]
+    )
+
+    res.status(201).json({ success: true, message: 'Review saved' })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save review', details: err.message })
+  } finally {
+    await db.close()
   }
 }

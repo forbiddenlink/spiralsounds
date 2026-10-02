@@ -1,6 +1,6 @@
 import express from 'express'
-import { getGenres, getProducts, getSearchSuggestions, trackSearch, trackProductClick } from '../../controllers/productsController.js'
-import { authenticateToken as requireAuth } from '../../utils/jwt.js'
+import { getGenres, getProducts, getSearchSuggestions, trackSearch, trackProductClick, getProductById, upsertReview } from '../../controllers/productsController.js'
+import { authenticateToken as requireAuth, optionalAuth } from '../../utils/jwt.js'
 
 export const productsRouter = express.Router()
 
@@ -15,8 +15,11 @@ productsRouter.get('/search/suggestions', getSearchSuggestions)
 productsRouter.post('/analytics/search', trackSearch)
 productsRouter.post('/analytics/click', trackProductClick)
 
+// Product detail and reviews (after the static paths above so they are not shadowed)
+productsRouter.get('/:id', optionalAuth, getProductById)
+productsRouter.post('/:id/reviews', requireAuth, upsertReview)
+
 // Future product management endpoints (admin only)
 // productsRouter.post('/', requireAuth, requireAdmin, createProduct)
 // productsRouter.put('/:id', requireAuth, requireAdmin, updateProduct)
 // productsRouter.delete('/:id', requireAuth, requireAdmin, deleteProduct)
-// productsRouter.get('/:id', getProductById)

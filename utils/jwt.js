@@ -44,6 +44,27 @@ export const verifyToken = (token) => {
   }
 }
 
+// Short-lived proof that a password check passed for an account with 2FA on.
+// A separate audience means it can never be used as an access token.
+const TWO_FA_AUDIENCE = 'spiral-sounds-2fa'
+
+export const generate2FAChallenge = (userId) => {
+  return jwt.sign({ userId, purpose: '2fa-challenge' }, getJWTSecret(), {
+    expiresIn: '5m',
+    issuer: 'spiral-sounds',
+    audience: TWO_FA_AUDIENCE,
+    jwtid: crypto.randomBytes(16).toString('hex')
+  })
+}
+
+export const verify2FAChallenge = (token) => {
+  const payload = jwt.verify(token, getJWTSecret(), { issuer: 'spiral-sounds', audience: TWO_FA_AUDIENCE })
+  if (payload.purpose !== '2fa-challenge' || !payload.jti) {
+    throw new Error('Not a 2FA challenge')
+  }
+  return payload
+}
+
 // Generate secure random token (for password reset, email verification)
 export const generateSecureToken = () => {
   return crypto.randomBytes(32).toString('hex')
@@ -72,9 +93,9 @@ export const authenticateToken = (req, res, next) => {
       userId: decoded.userId || decoded.id
     }
     next()
-  } catch (error) {
-    // Pass JWT errors to our error handler
-    next(error)
+  } catch {
+    // Bad, expired, or wrong-audience tokens are a 401, not a server error
+    next(new AuthError('Invalid or expired access token', 'TOKEN_INVALID'))
   }
 }
 

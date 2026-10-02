@@ -11,7 +11,18 @@ export async function addToCart(req, res) {
 
  const userId = req.user?.userId
 
+ const product = await db.get('SELECT stock FROM products WHERE id = ?', [productId])
+ if (!product) {
+  return res.status(404).json({ error: 'Product not found' })
+ }
+
  const existing = await db.get('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?', [userId, productId])
+
+ // Never let a cart hold more copies than the shop has
+ const inCart = existing ? existing.quantity : 0
+ if (inCart + 1 > product.stock) {
+  return res.status(409).json({ error: product.stock === 0 ? 'This record is sold out' : `Only ${product.stock} in stock`, stock: product.stock })
+ }
 
  if (existing) {
   await db.run('UPDATE cart_items SET quantity = quantity + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [existing.id])
@@ -36,7 +47,7 @@ export async function getAll(req, res) {
 
   const db = await getDBConnection()
 
-  const items = await db.all(`SELECT ci.id AS cartItemId, ci.quantity, p.title, p.artist, p.price FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?`, [req.user?.userId]) 
+  const items = await db.all(`SELECT ci.id AS cartItemId, ci.quantity, p.id AS productId, p.title, p.artist, p.price, p.image, p.genre, p.year, p.stock FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?`, [req.user?.userId]) 
 
   res.json({ items: items})
 }  
@@ -74,3 +85,38 @@ export async function deleteAll(req, res) {
   
 }
 
+
+
+// Set an exact quantity for one cart line (1 to 10 copies)
+export async function updateItemQuantity(req, res) {
+  const itemId = parseInt(req.params.itemId, 10)
+  const quantity = Number(req.body.quantity)
+
+  if (isNaN(itemId)) {
+    return res.status(400).json({ error: 'Invalid item ID' })
+  }
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
+    return res.status(400).json({ error: 'Quantity must be a whole number from 1 to 10' })
+  }
+
+  const db = await getDBConnection()
+
+  const line = await db.get(
+    'SELECT p.stock FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.id = ? AND ci.user_id = ?',
+    [itemId, req.user?.userId]
+  )
+  if (line && quantity > line.stock) {
+    return res.status(409).json({ error: `Only ${line.stock} in stock`, stock: line.stock })
+  }
+
+  const result = await db.run(
+    'UPDATE cart_items SET quantity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+    [quantity, itemId, req.user?.userId]
+  )
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Item not found' })
+  }
+
+  res.json({ message: 'Quantity updated', quantity })
+}

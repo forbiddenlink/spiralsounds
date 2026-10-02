@@ -2,12 +2,13 @@ import express from 'express'
 import session from 'express-session'
 import helmet from 'helmet'
 import cors from 'cors'
-import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
 import compression from 'compression'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 import { sanitizeRequestBody } from './utils/sanitization.js'
+import { requireSameOrigin } from './middleware/sameOrigin.js'
+import { apiLimiter, mountAuthLimits } from './middleware/rateLimits.js'
 
 // Load environment variables
 dotenv.config()
@@ -53,34 +54,18 @@ app.use(cors({
   credentials: true
 }))
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
-})
-app.use('/api/', limiter)
-
-// Stricter rate limiting for authentication endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
-  skipSuccessfulRequests: true,
-  message: {
-    error: 'Too many authentication attempts. Please try again in 15 minutes.'
-  }
-})
-app.use('/api/auth/login', authLimiter)
-app.use('/api/auth/register', authLimiter)
-app.use('/api/auth/forgot-password', authLimiter)
+// Rate limiting (middleware/rateLimits.js)
+app.use('/api/', apiLimiter())
+mountAuthLimits(app)
 
 // Body parsing and compression
 app.use(compression())
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
+
+// Refuse cross-site state changes on the cookie-authenticated API
+app.use('/api', requireSameOrigin)
 
 // XSS Protection - sanitize all incoming request bodies
 app.use(sanitizeRequestBody)
@@ -104,7 +89,8 @@ app.use(session({
 
 
 
-app.use(express.static('public'))
+// extensions: email links use /reset-password and /verify-email without .html
+app.use(express.static('public', { extensions: ['html'] }))
 
 // Import error handlers and migrations
 import { errorHandler, notFoundHandler, logger } from './middleware/errorHandler.js'
@@ -120,18 +106,19 @@ import { v1Router } from './routes/v1/index.js'
 // API Versioning
 app.use('/api/v1', v1Router)
 
-// Legacy routes (deprecated - redirect to v1)
+// Legacy routes (deprecated - redirect to v1). 308 keeps the method and body,
+// so an old client's POST still arrives as a POST instead of turning into a GET.
 app.use('/api/products', (req, res) => {
-  res.status(301).redirect('/api/v1/products' + req.url)
+  res.redirect(308, '/api/v1/products' + req.url)
 })
 app.use('/api/auth', (req, res) => {
-  res.status(301).redirect('/api/v1/auth' + req.url)
+  res.redirect(308, '/api/v1/auth' + req.url)
 })
 app.use('/api/cart', (req, res) => {
-  res.status(301).redirect('/api/v1/cart' + req.url)
+  res.redirect(308, '/api/v1/cart' + req.url)
 })
 app.use('/api/analytics', (req, res) => {
-  res.status(301).redirect('/api/v1/analytics' + req.url)
+  res.redirect(308, '/api/v1/analytics' + req.url)
 })
 
 // Main API info endpoint
@@ -150,6 +137,14 @@ app.get('/api', (req, res) => {
 // Legacy health check (redirect to v1)
 app.get('/api/health', (req, res) => {
   res.status(301).redirect('/api/v1/health')
+})
+
+// Unknown pages get the shop's 404 page; unknown API paths keep the JSON 404 below
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && req.accepts('html')) {
+    return res.status(404).sendFile('404.html', { root: 'public' })
+  }
+  next()
 })
 
 // Error handling middleware (must be last)

@@ -30,6 +30,19 @@ authRouter.post('/2fa/disable', requireAuth, disable2FA)
 authRouter.post('/2fa/backup-codes', requireAuth, generateBackupCodes)
 authRouter.get('/2fa/status', requireAuth, get2FAStatus)
 
+// Lightweight session check for pages: 200 either way, so signed-out visitors see no error
+authRouter.get('/session', optionalAuth, async (req, res, next) => {
+  try {
+    const userId = req.user?.userId || req.user?.id
+    if (!userId) return res.json({ isLoggedIn: false })
+    const user = await userRepository.findById(userId)
+    if (!user) return res.json({ isLoggedIn: false })
+    res.json({ isLoggedIn: true, name: user.display_name || user.name || user.username, role: user.role || 'user' })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // Auth status endpoint
 authRouter.get('/status', requireAuth, async (req, res, next) => {
   try {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15142a" media="(prefers-color-scheme: dark)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/css/spiral.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/images/favicon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <script src="/js/app/theme-boot.js"></script>
+  <meta name="robots" content="noindex">
+  <title>Not in the bins: Spiral Sounds</title>
+  <script src="/js/app/plain.js" type="module"></script>
+</head>
+<body class="page-404">
+  <div id="shell-top"></div>
+  <main id="main" class="wrap">
+    <div class="state" style="padding-block:96px 48px">
+      <div class="disc" aria-hidden="true" style="width:160px"><div class="disc-label" style="background:var(--spiral)"></div></div>
+      <h1 class="page-title" style="padding-top:16px">This page is not in the bins</h1>
+      <p>The link may be mistyped, or the page moved. Search for a record or head back to the shop.</p>
+      <form action="/" method="get" role="search" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;max-width:520px">
+        <label class="visually-hidden" for="nf-search">Search records</label>
+        <input class="input" id="nf-search" name="q" type="search" placeholder="Artist or title" style="flex:1;min-width:200px;border-radius:999px">
+        <button class="btn btn--primary" type="submit">Search</button>
+      </form>
+      <a href="/">Back to the shop</a>
+    </div>
+  </main>
+  <div id="shell-foot"></div>
+</body>
+</html>
