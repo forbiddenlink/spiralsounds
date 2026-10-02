@@ -12,7 +12,7 @@ Screenshot tooling (outside repo): `/Volumes/LizsDisk/_wt/ss-tools/shot.mjs` (lo
 - [x] Phase 4: Foundation + homepage
 - [x] Phase 5: Roll out to every template
 - [x] Phase 6: Verify
-- [→] Phase 7: Report
+- [x] Phase 7: Report (`report.md`)
 
 ## Notes
 
