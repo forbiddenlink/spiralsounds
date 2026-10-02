@@ -81,7 +81,13 @@ const handlers = {
     if (Object.keys(errs).length) return showErrors(form, {}, Object.values(errs).join(' '))
     setBusy(form, true, 'Signing in…')
     try {
-      await api.login({ username, password })
+      const res = await api.login({ username, password })
+      if (res?.requires2FA) {
+        // Password was right; the code page finishes the sign-in with this short-lived challenge
+        sessionStorage.setItem('pending2FA', res.challengeToken)
+        location.href = `/verify-2fa.html?next=${encodeURIComponent(nextUrl)}`
+        return
+      }
       location.href = nextUrl
     } catch (err) {
       setBusy(form, false)
@@ -143,18 +149,24 @@ const handlers = {
   },
 
   async twofa(form) {
-    const userId = sessionStorage.getItem('pendingAuthUserId')
+    const challengeToken = sessionStorage.getItem('pending2FA')
     const code = form.code.value.replace(/\s+/g, '')
-    if (!userId) return showErrors(form, {}, 'There is no sign-in waiting for a code. Start again from the sign-in page.')
+    if (!challengeToken) return showErrors(form, {}, 'There is no sign-in waiting for a code. Start again from the sign-in page.')
     if (!code) return showErrors(form, {}, 'Enter the code from your authenticator app.')
     setBusy(form, true, 'Checking…')
     try {
-      await api.api('/auth/2fa/verify', { method: 'POST', body: { token: code, userId } })
-      sessionStorage.removeItem('pendingAuthUserId')
+      await api.api('/auth/2fa/verify', { method: 'POST', body: { challengeToken, token: code } })
+      sessionStorage.removeItem('pending2FA')
       location.href = nextUrl
     } catch (err) {
       setBusy(form, false)
-      showErrors(form, {}, err.status === 400 ? 'That code did not match. Codes change every 30 seconds; try the current one.' : err.message)
+      if (err.status === 401 || err.status === 429) {
+        // The challenge is spent; only a fresh password sign-in can continue
+        sessionStorage.removeItem('pending2FA')
+        return showErrors(form, {}, err.message)
+      }
+      const left = err.body?.attemptsLeft
+      showErrors(form, {}, `That code did not match. Codes change every 30 seconds; try the current one.${left != null && left <= 2 ? ` ${left} ${left === 1 ? 'try' : 'tries'} left.` : ''}`)
     }
   }
 }

@@ -1,6 +1,6 @@
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
-import { generateAccessToken, generateRefreshToken, generateSecureToken, hashToken } from '../utils/jwt.js'
+import { generate2FAChallenge, generateAccessToken, generateRefreshToken, generateSecureToken, hashToken, verify2FAChallenge } from '../utils/jwt.js'
 import { logger } from '../middleware/errorHandler.js'
 import { emailService } from '../utils/emailService.js'
 import { userRepository } from '../repositories/index.js'
@@ -89,6 +89,49 @@ export async function registerUser(req, res, next) {
   }
 }
 
+// Issue access and refresh tokens as httpOnly cookies and record the login.
+// Used by password login and by the 2FA code check, so both end the same way.
+async function startSession(req, res, user) {
+  // Update last login using repository
+  await userRepository.updateLastLogin(user.id)
+
+  // Generate new JWT tokens
+  const accessToken = generateAccessToken({
+    userId: user.id,
+    username: user.username,
+    email: user.email
+  })
+  const refreshToken = generateRefreshToken({ userId: user.id })
+
+  // Clean up old refresh tokens for this user and store new one
+  const db = await userRepository.getDB()
+  await db.run('DELETE FROM refresh_tokens WHERE user_id = ?', [user.id])
+  await db.run(
+    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+    [user.id, hashToken(refreshToken), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()]
+  )
+
+  // Set session for backward compatibility
+  if (req.session) req.session.userId = user.id
+
+  // Set HTTP-only cookies
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  })
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000
+  })
+
+  return accessToken
+}
+
 export async function loginUser(req, res, next) {
   try {
     let { username, password } = req.body
@@ -112,42 +155,13 @@ export async function loginUser(req, res, next) {
       throw new AuthError('Invalid credentials', 'INVALID_CREDENTIALS')
     }
 
-    // Update last login using repository
-    await userRepository.updateLastLogin(user.id)
+    // With 2FA on, a correct password only earns a challenge; cookies wait for the code
+    if (user.two_fa_enabled) {
+      await logSecurityEvent(user.id, '2FA_CHALLENGE_ISSUED', { username }, req)
+      return res.json({ success: true, requires2FA: true, challengeToken: generate2FAChallenge(user.id) })
+    }
 
-    // Generate new JWT tokens
-    const accessToken = generateAccessToken({
-      userId: user.id,
-      username: user.username,
-      email: user.email
-    })
-    const refreshToken = generateRefreshToken({ userId: user.id })
-
-    // Clean up old refresh tokens for this user and store new one
-    const db = await userRepository.getDB()
-    await db.run('DELETE FROM refresh_tokens WHERE user_id = ?', [user.id])
-    await db.run(
-      'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-      [user.id, hashToken(refreshToken), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()]
-    )
-
-    // Set session for backward compatibility
-    req.session.userId = user.id
-
-    // Set HTTP-only cookies
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000
-    })
+    const accessToken = await startSession(req, res, user)
 
     // Log successful login
     await logSecurityEvent(user.id, 'USER_LOGGED_IN', { username }, req)
@@ -454,76 +468,75 @@ export async function enable2FA(req, res) {
   }
 }
 
+// Wrong codes allowed per challenge before the visitor must sign in again.
+// Keyed by the challenge's jti; entries expire with the 5-minute challenge.
+const MAX_2FA_ATTEMPTS = 5
+const challengeAttempts = new Map()
+
+function noteChallenge(jti, exp) {
+  const now = Date.now()
+  for (const [key, entry] of challengeAttempts) {
+    if (entry.expiresAt < now) challengeAttempts.delete(key)
+  }
+  if (!challengeAttempts.has(jti)) challengeAttempts.set(jti, { failures: 0, used: false, expiresAt: exp * 1000 })
+  return challengeAttempts.get(jti)
+}
+
 /**
- * Verify 2FA token during login
+ * Finish a 2FA sign-in. Takes the challenge from a correct password plus an
+ * authenticator or backup code, then sets the same cookies as a password login.
  */
 export async function verify2FA(req, res) {
   try {
-    const { token, userId } = req.body
+    const { challengeToken, token } = req.body
 
-    if (!token || !userId) {
-      return res.status(400).json({ error: 'Authentication code and user ID required' })
+    if (!challengeToken || !token) {
+      return res.status(400).json({ error: 'Sign-in challenge and authentication code required' })
     }
 
-    const result = await TwoFactorAuthService.verifyToken(userId, token)
+    let challenge
+    try {
+      challenge = verify2FAChallenge(challengeToken)
+    } catch {
+      return res.status(401).json({ error: 'This sign-in has expired. Sign in again.', code: 'CHALLENGE_INVALID' })
+    }
 
-    if (result.success) {
-      // Complete the login process
-      const db = await getDBConnection()
-      const user = await db.get(
-        'SELECT id, username, email, display_name, profile_picture FROM users WHERE id = ?',
-        [userId]
-      )
+    const attempts = noteChallenge(challenge.jti, challenge.exp)
+    if (attempts.used || attempts.failures >= MAX_2FA_ATTEMPTS) {
+      return res.status(429).json({ error: 'Too many attempts for this sign-in. Sign in again.', code: 'CHALLENGE_LOCKED' })
+    }
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' })
-      }
+    const result = await TwoFactorAuthService.verifyToken(challenge.userId, String(token))
 
-      // Generate tokens
-      const accessToken = generateAccessToken({
-        userId: user.id,
+    if (!result.success) {
+      attempts.failures += 1
+      await logSecurityEvent(challenge.userId, '2FA_LOGIN_FAILED', `2FA verification failed: ${result.message}`, req)
+      return res.status(400).json({ ...result, attemptsLeft: MAX_2FA_ATTEMPTS - attempts.failures })
+    }
+
+    // One challenge, one session
+    attempts.used = true
+
+    const user = await userRepository.findById(challenge.userId)
+    if (!user) {
+      return res.status(401).json({ error: 'This sign-in has expired. Sign in again.', code: 'CHALLENGE_INVALID' })
+    }
+
+    const accessToken = await startSession(req, res, user)
+    await logSecurityEvent(user.id, '2FA_LOGIN_SUCCESS', '2FA verification successful', req)
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
         username: user.username,
-        email: user.email
-      })
-      const refreshToken = generateRefreshToken({ userId: user.id })
-
-      // Store refresh token
-      const hashedRefreshToken = hashToken(refreshToken)
-      await db.run(
-        'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-        [
-          user.id,
-          hashedRefreshToken,
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        ]
-      )
-
-      // Update last login
-      const ipAddress = req.ip || req.connection.remoteAddress
-      await db.run(
-        'UPDATE users SET last_login_at = ?, last_login_ip = ? WHERE id = ?',
-        [new Date().toISOString(), ipAddress, user.id]
-      )
-
-      await logSecurityEvent(user.id, '2FA_LOGIN_SUCCESS', '2FA verification successful', req)
-
-      res.json({
-        message: 'Login successful',
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          displayName: user.display_name,
-          profilePicture: user.profile_picture
-        },
-        accessToken,
-        refreshToken
-      })
-    } else {
-      await logSecurityEvent(userId, '2FA_LOGIN_FAILED', `2FA verification failed: ${result.message}`, req)
-      res.status(400).json(result)
-    }
-
+        isVerified: user.is_verified
+      },
+      accessToken
+    })
   } catch (error) {
     logger.error('2FA verification error:', error)
     res.status(500).json({ error: 'Failed to verify 2FA' })
