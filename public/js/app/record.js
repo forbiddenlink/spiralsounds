@@ -12,7 +12,7 @@ const when = s => {
   const d = new Date(String(s).replace(' ', 'T') + (String(s).includes('Z') ? '' : 'Z'))
   return Number.isNaN(d.getTime()) ? '' : dateFmt.format(d)
 }
-const starRow = n => `<span class="stars" aria-label="${n} out of 5">${Array.from({ length: 5 }, (_, i) => `<span style="opacity:${i < n ? 1 : 0.2}">${icon('star')}</span>`).join('')}</span>`
+const starRow = n => `<span class="stars" role="img" aria-label="${n} out of 5">${Array.from({ length: 5 }, (_, i) => `<span style="opacity:${i < n ? 1 : 0.2}">${icon('star')}</span>`).join('')}</span>`
 
 function notFound(message) {
   document.title = 'Record not found: Spiral Sounds'

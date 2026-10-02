@@ -34,10 +34,13 @@ export async function addToWishlist(req, res) {
     }
     const existing = await db.get('SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?', [
       req.user.userId,
-      productId
+      productId,
     ])
     if (!existing) {
-      await db.run('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)', [req.user.userId, productId])
+      await db.run('INSERT INTO wishlists (user_id, product_id) VALUES (?, ?)', [
+        req.user.userId,
+        productId,
+      ])
     }
     res.status(201).json({ success: true, message: 'Saved' })
   } catch (err) {
@@ -55,7 +58,10 @@ export async function removeFromWishlist(req, res) {
 
   const db = await getDBConnection()
   try {
-    await db.run('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?', [req.user.userId, productId])
+    await db.run('DELETE FROM wishlists WHERE user_id = ? AND product_id = ?', [
+      req.user.userId,
+      productId,
+    ])
     res.status(204).send()
   } catch (err) {
     res.status(500).json({ error: 'Failed to remove saved record', details: err.message })

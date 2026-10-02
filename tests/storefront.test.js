@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeAll } from '@jest/globals'
-import request from 'supertest'
+import { beforeAll, describe, expect, test } from '@jest/globals'
 import bcrypt from 'bcryptjs'
+import request from 'supertest'
 
 process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-with-32-characters-minimum'
 process.env.SESSION_SECRET = 'test-session-secret-for-testing-only-with-32-characters'
@@ -186,13 +186,13 @@ describe('GET /api/v1/products list extras', () => {
 
   test('sorts by year, newest first', async () => {
     const res = await request(app).get('/api/v1/products?sortBy=year&sortOrder=desc')
-    const years = res.body.data.products.map(p => p.year)
+    const years = res.body.data.products.map((p) => p.year)
     expect(years).toEqual([...years].sort((a, b) => b - a))
   })
 
   test('sorts by rating, highest first', async () => {
     const res = await request(app).get('/api/v1/products?sortBy=rating&sortOrder=desc')
-    const avgs = res.body.data.products.map(p => p.rating_avg || 0)
+    const avgs = res.body.data.products.map((p) => p.rating_avg || 0)
     expect(avgs).toEqual([...avgs].sort((a, b) => b - a))
   })
 })
@@ -214,16 +214,25 @@ describe('GET /api/v1/auth/session', () => {
 
 describe('PUT /api/v1/me', () => {
   test('updates the display name shown on reviews and the header', async () => {
-    const res = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: 'Crate Digger' })
+    const res = await request(app)
+      .put('/api/v1/me')
+      .set('Authorization', auth)
+      .send({ displayName: 'Crate Digger' })
     expect(res.status).toBe(200)
     const session = await request(app).get('/api/v1/auth/session').set('Authorization', auth)
     expect(session.body.name).toBe('Crate Digger')
   })
 
   test('rejects an empty or overlong name', async () => {
-    const empty = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: '  ' })
+    const empty = await request(app)
+      .put('/api/v1/me')
+      .set('Authorization', auth)
+      .send({ displayName: '  ' })
     expect(empty.status).toBe(400)
-    const long = await request(app).put('/api/v1/me').set('Authorization', auth).send({ displayName: 'x'.repeat(51) })
+    const long = await request(app)
+      .put('/api/v1/me')
+      .set('Authorization', auth)
+      .send({ displayName: 'x'.repeat(51) })
     expect(long.status).toBe(400)
   })
 })

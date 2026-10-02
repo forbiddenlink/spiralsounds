@@ -30,7 +30,7 @@ export const recordUrl = id => `/record.html?id=${encodeURIComponent(id)}`
 
 export function starsSummary(avg, count) {
   if (!count) return ''
-  return `<span class="stars" aria-label="Rated ${esc(avg)} out of 5 from ${count} review${count === 1 ? '' : 's'}">${icon('star')}${esc(Number(avg).toFixed(1))} <span class="muted">(${count})</span></span>`
+  return `<span class="stars"><span class="visually-hidden">Rated ${esc(Number(avg).toFixed(1))} out of 5 from ${count} review${count === 1 ? '' : 's'}</span><span aria-hidden="true">${icon('star')}${esc(Number(avg).toFixed(1))} <span class="muted">(${count})</span></span></span>`
 }
 
 const PATHS = {

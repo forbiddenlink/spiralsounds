@@ -11,8 +11,8 @@ Screenshot tooling (outside repo): `/Volumes/LizsDisk/_wt/ss-tools/shot.mjs` (lo
 - [x] Phase 3: Decide (`plan.md`)
 - [x] Phase 4: Foundation + homepage
 - [x] Phase 5: Roll out to every template
-- [→] Phase 6: Verify
-- [ ] Phase 7: Report
+- [x] Phase 6: Verify
+- [→] Phase 7: Report
 
 ## Notes
 
@@ -62,3 +62,20 @@ R1 fixes applied across templates: mobile page titles overflowed at width 150 (`
 Journeys scripted (`ss-tools/journeys.mjs`, zero page errors): wrong password message, sign in with `next` redirect, save, add to cart, drawer quantity +1, post and update a review, unsave from Saved, cart total, demo checkout clears count, page 404, missing record, API JSON 404, `/reset-password?token=` bad-token message.
 
 Not tested: the email links end to end (no email provider; item 6), 2FA at sign-in (login ignores 2FA; item 7), install prompt (needs a real browser profile).
+
+## Phase 6 results
+
+- **Build / typecheck:** no build step or TypeScript in this repo. `node --check` on every tracked JS file plus `public/js/app/*.js`: clean except `public/js/theme.js:106`, a syntax error that is identical on `origin/main` and in a file the new pages no longer load (needs-approval 13).
+- **Tests:** `jest --runInBand` (parallel workers fight over the shared `database.db`, needs-approval 10). `origin/main` fresh DB: 16 of 39 fail. Branch: 16 of 58 fail, the same 16 test names (set difference empty), and all 19 new `storefront.test.js` tests pass.
+- **Lint:** `biome check .`: 86 errors on `origin/main`, 86 on the branch. The 5 this branch introduced (formatting and import order in its 3 new files) were fixed. `public/` is excluded by `biome.json`.
+- **Lighthouse (mobile, chrome-devtools MCP):** home, record, sign up, cart: accessibility 100, best practices 100, SEO 100. The record page first scored 96 (`aria-label` on a plain `span` in the star rating); fixed with `role="img"` and visually hidden text. Lighthouse refuses to audit the 404 page because it returns HTTP 404, which is the intended status.
+- **Load metrics** (`ss-tools/perf.mjs`, 390px, 4x CPU, about Slow 4G, service worker blocked):
+
+| Page | Before (origin) | After |
+|---|---|---|
+| Home | LCP 732 ms, CLS 0.041, 449 KB (grid empty: catalog API 404) | LCP 620 ms, CLS 0.000, 129 KB |
+| Record | page did not exist | LCP 1364 ms, CLS 0.018, 106 KB |
+| Sign in | LCP 2804 ms, CLS 0.001, 412 KB | LCP 608 ms, CLS 0.012, 153 KB |
+| Cart | LCP 552 ms, CLS 0.041, 372 KB | LCP 896 ms, CLS 0.049, 35 KB (signed-out state) |
+
+- **Journeys:** `ss-tools/journeys.mjs` (sign in, save, add, quantity, review, unsave, checkout, 404s, reset link), `home-flow.mjs` (bins, sort, search, empty, signed-out add, disc animation, no overflow), `twofa.mjs` (2FA setup to disable), `states.mjs` (forced loading, empty, error, success). All pass with zero page errors.
