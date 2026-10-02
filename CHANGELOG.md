@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.6...v1.1.0) (2026-10-02)
+
+
+### Features
+
+* rebuild the shop on one design and make the main journey work ([#89](https://github.com/forbiddenlink/spiralsounds/issues/89)) ([0d0e4e7](https://github.com/forbiddenlink/spiralsounds/commit/0d0e4e780e8a934a51ee9933ef48ef66464f9b43))
+
+
+### Bug Fixes
+
+* **deps:** apply override fix plan ([#88](https://github.com/forbiddenlink/spiralsounds/issues/88)) ([e28e84c](https://github.com/forbiddenlink/spiralsounds/commit/e28e84ca02e0eb92be13980cf558d31ab8670f59))
+* **deps:** raise stale override floors ([#86](https://github.com/forbiddenlink/spiralsounds/issues/86)) ([a61425d](https://github.com/forbiddenlink/spiralsounds/commit/a61425d66802007e1a97eb9c1208f9b270385391))
+
 ## [1.0.6](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.5...v1.0.6) (2026-09-30)
 
 
