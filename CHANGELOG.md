@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.0...v1.1.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **deps:** bound override for proxy-addr ([#92](https://github.com/forbiddenlink/spiralsounds/issues/92)) ([f2b1bcf](https://github.com/forbiddenlink/spiralsounds/commit/f2b1bcfd3a735c56d7d09d8082daa27bb14dda14))
+
 ## [1.1.0](https://github.com/forbiddenlink/spiralsounds/compare/v1.0.6...v1.1.0) (2026-10-02)
 
 
