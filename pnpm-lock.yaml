@@ -7,7 +7,8 @@ settings:
 overrides:
   '@tootallnate/once': '>=3.0.1 <4'
   body-parser: '>=2.3.0 <3'
-  brace-expansion: '>=1.1.16 <3'
+  brace-expansion@1: '>=1.1.21 <2.0.0'
+  brace-expansion@2: '>=2.1.7 <3.0.0'
   browserslist: '>=4.28.7 <5'
   dompurify: '>=3.3.2 <4'
   engine.io: '>=6.6.10 <7'
@@ -913,8 +914,8 @@ packages:
     resolution: {integrity: sha512-2cGmJupaNgg+QUwVLAucDuWuoMZ6EX9iHDRswZ5lsNYEmwPaRknMPCLZz07yTzVq/83p4o/wzbDZbBrTvGGTIw==}
     engines: {node: '>=18'}
 
-  brace-expansion@2.1.4:
-    resolution: {integrity: sha512-hGfVzPxthbf3+2yjg/RBs60cB0FhqBS/zvdV/4wn4/BmN0bNMMHPc4V/BbFieqf1TKAGGAHnY4eSjajCl0f2Xg==}
+  brace-expansion@2.1.7:
+    resolution: {integrity: sha512-uZbew1NqdmPDTMJ8ah1y+b+9QEJrfkXFk3RcTQw3X0jW/xRUvFKsg1CfQdSYGdTbXZWExtU3J3ccxtnfw1Fi0g==}
 
   browserslist@4.28.9:
     resolution: {integrity: sha512-EWazOblFYUvlGZcfGhPUPmYh3nikUxBVb+y9MJun5f3hBi812X+8MSQTujLBtgK3cf51fJWbWfOjyeO954d+Eg==}
@@ -3257,7 +3258,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  brace-expansion@2.1.4:
+  brace-expansion@2.1.7:
     dependencies:
       balanced-match: 1.0.2
 
@@ -4280,7 +4281,7 @@ snapshots:
 
   minimatch@9.0.9:
     dependencies:
-      brace-expansion: 2.1.4
+      brace-expansion: 2.1.7
 
   minimist@1.2.8: {}
 
