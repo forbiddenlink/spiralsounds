@@ -84,5 +84,5 @@
       "proxy-addr": ">=2.0.8 <3"
     }
   },
-  "packageManager": "pnpm@10.34.6"
+  "packageManager": "pnpm@10.34.7"
 }
