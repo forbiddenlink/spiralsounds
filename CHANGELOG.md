@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.1...v1.1.2) (2026-10-19)
+
+
+### Bug Fixes
+
+* **deps:** clear transitive CVEs with bounded overrides ([#97](https://github.com/forbiddenlink/spiralsounds/issues/97)) ([2d8ac17](https://github.com/forbiddenlink/spiralsounds/commit/2d8ac17aa0473ba9a6cbbb71492229e2a9d22859))
+
 ## [1.1.1](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.0...v1.1.1) (2026-10-12)
 
 
