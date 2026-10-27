@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.2...v1.1.3) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** force patched undici 8.x and body-parser 2.4 in the lockfile ([#105](https://github.com/forbiddenlink/spiralsounds/issues/105)) ([2702e51](https://github.com/forbiddenlink/spiralsounds/commit/2702e51303cfaa8cd53bcb53b839bee7008a0ec7))
+
 ## [1.1.2](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.1...v1.1.2) (2026-10-19)
 
 
