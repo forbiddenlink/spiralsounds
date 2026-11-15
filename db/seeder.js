@@ -156,7 +156,7 @@ export class DatabaseSeeder {
       if (fromEnv) {
         logger.info('Created test user: testuser (password from SEED_TEST_USER_PASSWORD)')
       } else {
-        logger.info(`Created test user: testuser / ${password} (random, shown once; set SEED_TEST_USER_PASSWORD to choose your own)`)
+        logger.info('Created test user: testuser (random password, not logged; set SEED_TEST_USER_PASSWORD to choose your own)')
       }
       return result.lastID
 
