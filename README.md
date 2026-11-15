@@ -22,7 +22,7 @@ The site supports:
 
 ## Stack
 
-- **Server:** Node.js 22, Express 5, SQLite (`sqlite` + `sqlite3`), Socket.IO.
+- **Server:** Node.js 22, Express 5, SQLite (`sqlite` + `sqlite3`), and a WebSocket server (`ws`, `websocket/socketManager.js`) that the pages do not use yet.
 - **Auth:** JWT access and refresh tokens in httpOnly cookies, `bcryptjs`, TOTP two-step sign-in (`speakeasy`), role-based access control.
 - **Frontend:** static HTML and ES modules in `public/`, with no build step. The fonts are Anybody and Atkinson Hyperlegible Next, from Google Fonts. The content security policy allows scripts from this origin only.
 - **Tooling:** Jest 30 (ESM), Supertest, Biome 2, pnpm.
@@ -39,7 +39,7 @@ cp .env.example .env    # then set JWT_SECRET and SESSION_SECRET
 pnpm setup              # migrate, seed, and start
 ```
 
-Open `http://localhost:8000`, or the port you set in `PORT`. `pnpm seed` also creates a `testuser` account and prints its random password once. Set `SEED_TEST_USER_PASSWORD` to choose your own, or register a new local account.
+Open `http://localhost:8000`, or the port you set in `PORT`. There is no live deployment: the app needs a host with a persistent disk for SQLite, so it cannot run on a serverless platform. Outside production, seeding also creates a `testuser` account. Its random password is written to `.seed-credentials` (path overridable with `SEED_CREDENTIALS_FILE`), and the log line names the file. Set `SEED_TEST_USER_PASSWORD` to choose your own, or register a new local account.
 
 To make an account a staff account, set its role in the database:
 
@@ -49,7 +49,7 @@ sqlite3 database.db "UPDATE users SET role = 'admin' WHERE username = 'testuser'
 
 ## Environment variables
 
-`.env.example` lists every variable with a description. Two are required:
+`.env.example` lists most variables with a description (the two-step and seeder variables below are read by the code but not listed there). Two are required:
 
 - `SESSION_SECRET`: the server refuses to start without it.
 - `JWT_SECRET`: signing tokens fails without it.
@@ -66,6 +66,8 @@ Generate each with `openssl rand -base64 32`.
 | `EMAIL_SERVICE`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM` | Verification and password reset email. Without them, no email is sent; the failure is logged |
 | `DISCOGS_CONSUMER_KEY`, `DISCOGS_CONSUMER_SECRET` | Discogs catalog endpoints, which the shop pages do not use yet |
 | `TWO_FA_ISSUER`, `TWO_FA_SERVICE_NAME` | Name shown in authenticator apps |
+| `SEED_TEST_USER_PASSWORD`, `SEED_CREDENTIALS_FILE` | Seeder: choose the `testuser` password, or where the random one is written |
+| `LOG_LEVEL` | Logging verbosity |
 
 ## Scripts
 
