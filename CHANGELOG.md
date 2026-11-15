@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.5...v1.1.6) (2026-11-15)
+
+
+### Bug Fixes
+
+* **security:** stop the body sanitizer corrupting passwords and arrays ([#115](https://github.com/forbiddenlink/spiralsounds/issues/115)) ([5781e3f](https://github.com/forbiddenlink/spiralsounds/commit/5781e3f998a5be5f32b46ccc2136f1ce666d2bfb))
+
 ## [1.1.5](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.4...v1.1.5) (2026-11-15)
 
 
