@@ -1,6 +1,8 @@
 import { getDBConnection } from './db.js'
 import bcrypt from 'bcryptjs'
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
 import { logger } from '../middleware/errorHandler.js'
 
 export class DatabaseSeeder {
@@ -156,7 +158,10 @@ export class DatabaseSeeder {
       if (fromEnv) {
         logger.info('Created test user: testuser (password from SEED_TEST_USER_PASSWORD)')
       } else {
-        logger.info('Created test user: testuser (random password, not logged; set SEED_TEST_USER_PASSWORD to choose your own)')
+        const credsPath = path.resolve(process.env.SEED_CREDENTIALS_FILE || '.seed-credentials')
+        fs.writeFileSync(credsPath, `testuser:${password}\n`, { mode: 0o600 })
+        fs.chmodSync(credsPath, 0o600)
+        logger.info(`Created test user: testuser (random password written to ${credsPath}; set SEED_TEST_USER_PASSWORD to choose your own)`)
       }
       return result.lastID
 

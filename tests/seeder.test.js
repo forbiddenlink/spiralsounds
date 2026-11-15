@@ -1,5 +1,8 @@
 import { beforeAll, describe, expect, test } from '@jest/globals'
 import bcrypt from 'bcryptjs'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only-with-32-characters-minimum'
 process.env.SESSION_SECRET = 'test-session-secret-for-testing-only-with-32-characters'
@@ -41,5 +44,26 @@ describe('seedTestUser', () => {
     await seeder.seedTestUser()
     const hash = await readHash()
     expect(await bcrypt.compare('TestPassword123!', hash)).toBe(false)
+  })
+})
+
+describe('seedTestUser random password', () => {
+  test('writes the generated password to a 0600 file, not the logs', async () => {
+    await resetTestUser()
+    delete process.env.SEED_TEST_USER_PASSWORD
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'seed-creds-'))
+    const file = path.join(dir, '.seed-credentials')
+    process.env.SEED_CREDENTIALS_FILE = file
+    try {
+      await seeder.seedTestUser()
+      const [user, ...rest] = fs.readFileSync(file, 'utf8').trim().split(':')
+      const password = rest.join(':')
+      expect(user).toBe('testuser')
+      expect(await bcrypt.compare(password, await readHash())).toBe(true)
+      expect(fs.statSync(file).mode & 0o777).toBe(0o600)
+    } finally {
+      delete process.env.SEED_CREDENTIALS_FILE
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
