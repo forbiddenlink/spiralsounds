@@ -1,7 +1,7 @@
 # Design upgrade progress
 
 Branch: `design/upgrade` (worktree `/Volumes/LizsDisk/_wt/spiralsounds-design`, based on `origin/main` `e28e84c`).
-Local dev: `.env` in worktree (gitignored), `PORT=8010`, start with `node server.js`. Seeded login: `testuser` / `TestPassword123!`.
+Local dev: `.env` in worktree (gitignored), `PORT=8010`, start with `node server.js`. Seeded login: `testuser`; `pnpm seed` prints the password, or set `SEED_TEST_USER_PASSWORD`.
 Screenshot tooling (outside repo): `/Volumes/LizsDisk/_wt/ss-tools/shot.mjs` (local pages) and `ext.mjs` (external sites), Playwright 1.63 + cached Chromium.
 
 ## Phases

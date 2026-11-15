@@ -1,5 +1,6 @@
 import { getDBConnection } from './db.js'
 import bcrypt from 'bcryptjs'
+import crypto from 'node:crypto'
 import { logger } from '../middleware/errorHandler.js'
 
 export class DatabaseSeeder {
@@ -144,13 +145,19 @@ export class DatabaseSeeder {
       }
 
       // Create test user
-      const hashedPassword = await bcrypt.hash('TestPassword123!', 12)
+      const fromEnv = process.env.SEED_TEST_USER_PASSWORD
+      const password = fromEnv || crypto.randomBytes(12).toString('base64url')
+      const hashedPassword = await bcrypt.hash(password, 12)
       const result = await db.run(
         'INSERT INTO users (name, email, username, password, is_verified, created_at) VALUES (?, ?, ?, ?, ?, ?)',
         ['Test User', 'test@spiralsounds.com', 'testuser', hashedPassword, true, new Date().toISOString()]
       )
 
-      logger.info('Created test user: testuser / TestPassword123!')
+      if (fromEnv) {
+        logger.info('Created test user: testuser (password from SEED_TEST_USER_PASSWORD)')
+      } else {
+        logger.info(`Created test user: testuser / ${password} (random, shown once; set SEED_TEST_USER_PASSWORD to choose your own)`)
+      }
       return result.lastID
 
     } finally {

@@ -22,7 +22,7 @@ API reference: `docs/API.md`.
 pnpm start           # node server.js
 pnpm dev             # node --watch server.js
 pnpm migrate         # run DB migrations
-pnpm seed            # seed 10 records, testuser / TestPassword123!, sample reviews
+pnpm seed            # seed 10 records, testuser (password printed once, or set SEED_TEST_USER_PASSWORD), sample reviews
 pnpm setup           # migrate && seed && start
 pnpm reset-db        # delete database.db, re-migrate, re-seed
 pnpm test            # jest (ESM mode); CI fails on any red test
