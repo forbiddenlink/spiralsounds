@@ -74,3 +74,6 @@ supabase/.temp/
 out/
 
 # Next.js
+
+# Local seed credentials
+.seed-credentials
