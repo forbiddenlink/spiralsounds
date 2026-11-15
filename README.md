@@ -39,7 +39,7 @@ cp .env.example .env    # then set JWT_SECRET and SESSION_SECRET
 pnpm setup              # migrate, seed, and start
 ```
 
-Open `http://localhost:8000`, or the port you set in `PORT`. To sign in, use the seeded account `testuser` with the password `TestPassword123!`.
+Open `http://localhost:8000`, or the port you set in `PORT`. `pnpm seed` also creates a test user; see `db/seeder.js` for its username, or register a new local account.
 
 To make an account a staff account, set its role in the database:
 
