@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.4...v1.1.5) (2026-11-15)
+
+
+### Bug Fixes
+
+* **seed:** stop hard-coding and publishing the test user's password ([#113](https://github.com/forbiddenlink/spiralsounds/issues/113)) ([9c8ad8e](https://github.com/forbiddenlink/spiralsounds/commit/9c8ad8eb28b76ea96bc81f5a97be4bc8d3ac6abd))
+
 ## [1.1.4](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.3...v1.1.4) (2026-10-28)
 
 
