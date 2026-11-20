@@ -16,7 +16,7 @@ class EmailService {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@spiralsounds.com',
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: email,
       subject: 'Reset Your Spiral Sounds Password',
       html: `
@@ -78,7 +78,7 @@ class EmailService {
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@spiralsounds.com',
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: email,
       subject: 'Verify Your Spiral Sounds Account',
       html: `
@@ -138,7 +138,7 @@ class EmailService {
 
   async sendWelcomeEmail(email, username) {
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@spiralsounds.com',
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: email,
       subject: 'Welcome to Spiral Sounds! 🎵',
       html: `
