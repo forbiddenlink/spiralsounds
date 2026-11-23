@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.7](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.6...v1.1.7) (2026-11-20)
+
+
+### Bug Fixes
+
+* resolve patched dependencies without replacing legacy glob callers ([#119](https://github.com/forbiddenlink/spiralsounds/issues/119)) ([040701a](https://github.com/forbiddenlink/spiralsounds/commit/040701a1a1e1df25a46b39bcc8f14c229e1b1427))
+* send store email from the authenticated mailbox by default ([#121](https://github.com/forbiddenlink/spiralsounds/issues/121)) ([46355cd](https://github.com/forbiddenlink/spiralsounds/commit/46355cdc2d7ede37a2a3f8143fc16cc27c8874ea))
+
 ## [1.1.6](https://github.com/forbiddenlink/spiralsounds/compare/v1.1.5...v1.1.6) (2026-11-15)
 
 
